@@ -1,0 +1,418 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { Radar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+} from "chart.js";
+
+ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip);
+
+type Screen = "setup" | "sim" | "result";
+
+interface SimConfig {
+  title: string;
+  context: string;
+  aiRole: string;
+  targetPersona: string;
+  firstMsg: string;
+}
+
+interface ChatLog {
+  action: string;
+  intent: string;
+}
+
+interface AnalysisResult {
+  scores: number[];
+  overall: string;
+  personality: string;
+  detail: string;
+  critical_point: string;
+  best_approach: string;
+  hiring_recommendation: string;
+}
+
+const SCORE_LABELS = ["論理思考力", "交渉力", "状況適応力", "主体性", "ストレス耐性"];
+
+const RECOMMENDATION_COLOR: Record<string, string> = {
+  "強く推奨": "bg-emerald-50 border-emerald-400 text-emerald-800",
+  "推奨": "bg-blue-50 border-blue-400 text-blue-800",
+  "要検討": "bg-amber-50 border-amber-400 text-amber-800",
+  "非推奨": "bg-red-50 border-red-400 text-red-800",
+};
+
+export default function Home() {
+  const [screen, setScreen] = useState<Screen>("setup");
+  const [jd, setJd] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState("");
+  const [simConfig, setSimConfig] = useState<SimConfig | null>(null);
+  const [messages, setMessages] = useState<{ role: "ai" | "user"; text: string; intent?: string }[]>([]);
+  const [chatLogs, setChatLogs] = useState<ChatLog[]>([]);
+  const [action, setAction] = useState("");
+  const [intent, setIntent] = useState("");
+  const [rallyCount, setRallyCount] = useState(0);
+  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [error, setError] = useState("");
+  const chatRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  async function initSimulation() {
+    if (jd.trim().length < 10) return;
+    setLoading(true);
+    setLoadingMsg("シナリオを生成中...");
+    setError("");
+
+    const res = await fetch("/api/init", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jd }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.error);
+      setLoading(false);
+      return;
+    }
+
+    setSimConfig(data);
+    setMessages([{ role: "ai", text: data.firstMsg }]);
+    setScreen("sim");
+    setLoading(false);
+  }
+
+  async function processRally() {
+    if (!action.trim() || !intent.trim() || !simConfig) return;
+
+    const newLog = { action, intent };
+    const newLogs = [...chatLogs, newLog];
+    const newMessages = [
+      ...messages,
+      { role: "user" as const, text: action, intent },
+    ];
+
+    setMessages(newMessages);
+    setChatLogs(newLogs);
+    setAction("");
+    setIntent("");
+    const newCount = rallyCount + 1;
+    setRallyCount(newCount);
+
+    setLoading(true);
+    setLoadingMsg("相手が返信を作成中...");
+
+    const res = await fetch("/api/rally", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        aiRole: simConfig.aiRole,
+        chatLogs: newLogs,
+        rallyCount: newCount,
+      }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.error);
+      setLoading(false);
+      return;
+    }
+
+    setMessages([...newMessages, { role: "ai", text: data.reply }]);
+
+    if (data.shouldFinish || newCount >= 6) {
+      await finishSimulation(newLogs);
+    } else {
+      setLoading(false);
+    }
+  }
+
+  async function finishSimulation(logs: ChatLog[]) {
+    setLoadingMsg("評価レポートを生成中...");
+
+    const res = await fetch("/api/finish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chatLogs: logs,
+        targetPersona: simConfig?.targetPersona ?? "",
+      }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.error);
+      setLoading(false);
+      return;
+    }
+
+    setAnalysis(data);
+    setScreen("result");
+    setLoading(false);
+  }
+
+  function downloadPDF() {
+    window.print();
+  }
+
+  function getRecommendationKey(rec: string) {
+    for (const key of Object.keys(RECOMMENDATION_COLOR)) {
+      if (rec.includes(key)) return key;
+    }
+    return "要検討";
+  }
+
+  const radarData = analysis
+    ? {
+        labels: SCORE_LABELS,
+        datasets: [
+          {
+            data: analysis.scores.map((s) => Math.min(Number(s), 10)),
+            backgroundColor: "rgba(37, 99, 235, 0.15)",
+            borderColor: "rgba(37, 99, 235, 0.8)",
+            borderWidth: 2,
+            pointBackgroundColor: "rgba(37, 99, 235, 1)",
+            pointRadius: 4,
+          },
+        ],
+      }
+    : null;
+
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans">
+      {/* Loading overlay */}
+      {loading && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+          <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin mb-4" />
+          <p className="text-white font-semibold">{loadingMsg}</p>
+        </div>
+      )}
+
+      {/* Header */}
+      <header className="bg-slate-900 text-white px-8 py-4 flex justify-between items-center shadow-lg">
+        <div className="font-black tracking-widest text-lg bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
+          TRACE
+        </div>
+        <div className="text-xs text-slate-400">
+          {screen === "setup" && "仕事シミュレーション採用"}
+          {screen === "sim" && `Rally ${rallyCount} / 最大6`}
+          {screen === "result" && "評価レポート"}
+        </div>
+      </header>
+
+      {/* Setup screen */}
+      {screen === "setup" && (
+        <div className="flex items-center justify-center min-h-[calc(100vh-64px)] p-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 w-full max-w-lg">
+            <h2 className="text-xl font-bold text-slate-800 mb-1">シミュレーション開始</h2>
+            <p className="text-sm text-slate-500 mb-6">求人票を貼り付けると、AIがリアルな商談シナリオを生成します。</p>
+            <label className="block text-xs font-bold text-slate-500 mb-1">求人票（JD）</label>
+            <textarea
+              value={jd}
+              onChange={(e) => setJd(e.target.value)}
+              rows={10}
+              placeholder="ここに求人票を貼り付けてください..."
+              className="w-full border border-slate-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-blue-400 transition-colors mb-4"
+            />
+            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+            <button
+              onClick={initSimulation}
+              disabled={jd.trim().length < 10}
+              className="w-full bg-blue-600 text-white rounded-xl py-3 font-semibold hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              シミュレーションを開始する
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Sim screen */}
+      {screen === "sim" && simConfig && (
+        <div className="flex gap-5 h-[calc(100vh-64px)] p-5">
+          {/* Left: context */}
+          <div className="w-80 flex-shrink-0 bg-white rounded-2xl border border-slate-100 p-5 overflow-y-auto shadow-sm">
+            <h3 className="font-bold text-blue-600 text-sm mb-3">{simConfig.title}</h3>
+            <div
+              className="text-xs text-slate-600 leading-relaxed [&_h3]:font-bold [&_h3]:text-slate-700 [&_h3]:mt-4 [&_h3]:mb-2 [&_ul]:pl-4 [&_li]:mb-1 [&_table]:text-xs [&_td]:p-2"
+              dangerouslySetInnerHTML={{ __html: simConfig.context }}
+            />
+          </div>
+
+          {/* Right: chat */}
+          <div className="flex-1 flex flex-col gap-4">
+            <div ref={chatRef} className="flex-1 bg-white rounded-2xl border border-slate-100 p-5 overflow-y-auto shadow-sm flex flex-col gap-4">
+              {messages.map((msg, i) => (
+                <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
+                    msg.role === "ai"
+                      ? "bg-slate-50 border border-slate-100 text-slate-700 rounded-tl-sm"
+                      : "bg-blue-600 text-white rounded-tr-sm"
+                  }`}>
+                    {msg.text}
+                    {msg.intent && (
+                      <span className="block text-xs mt-2 pt-2 border-t border-white/20 text-blue-100 italic">
+                        戦略: {msg.intent}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Input area */}
+            <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+              <div className="flex gap-4 mb-3">
+                <div className="flex-1">
+                  <label className="block text-xs font-bold text-slate-400 mb-1">返信内容（アクション）</label>
+                  <textarea
+                    value={action}
+                    onChange={(e) => setAction(e.target.value)}
+                    rows={3}
+                    className="w-full border border-slate-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-blue-400 transition-colors"
+                    placeholder="相手へのメッセージを書いてください..."
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs font-bold text-violet-400 mb-1">狙い・戦略（意図）</label>
+                  <textarea
+                    value={intent}
+                    onChange={(e) => setIntent(e.target.value)}
+                    rows={3}
+                    className="w-full border border-violet-200 bg-violet-50 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-violet-400 transition-colors"
+                    placeholder="このメッセージの狙いを書いてください..."
+                  />
+                </div>
+              </div>
+              {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+              <button
+                onClick={processRally}
+                disabled={!action.trim() || !intent.trim()}
+                className="w-full bg-slate-900 text-white rounded-xl py-3 font-semibold hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                送信する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Result screen */}
+      {screen === "result" && analysis && (
+        <div className="max-w-5xl mx-auto p-6 print:p-0">
+          <div className="flex gap-6 print:gap-4">
+            {/* Left: chart + personality */}
+            <div className="w-72 flex-shrink-0 space-y-4">
+              <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+                <h3 className="font-bold text-slate-700 text-sm mb-4 text-center">スコア分析</h3>
+                {radarData && (
+                  <Radar
+                    data={radarData}
+                    options={{
+                      scales: {
+                        r: {
+                          min: 0,
+                          max: 10,
+                          ticks: { display: false, stepSize: 2 },
+                          grid: { color: "#e2e8f0" },
+                          pointLabels: { font: { size: 11 } },
+                        },
+                      },
+                      plugins: { legend: { display: false } },
+                    }}
+                  />
+                )}
+                <div className="mt-4 space-y-2">
+                  {SCORE_LABELS.map((label, i) => (
+                    <div key={label} className="flex items-center justify-between text-xs">
+                      <span className="text-slate-500">{label}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-slate-100 rounded-full h-1.5">
+                          <div
+                            className="bg-blue-500 h-1.5 rounded-full"
+                            style={{ width: `${(analysis.scores[i] / 10) * 100}%` }}
+                          />
+                        </div>
+                        <span className="font-bold text-slate-700 w-6 text-right">{analysis.scores[i]}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Hiring recommendation */}
+              <div className={`rounded-2xl border-l-4 p-4 text-sm ${RECOMMENDATION_COLOR[getRecommendationKey(analysis.hiring_recommendation)]}`}>
+                <p className="font-bold text-xs mb-1">採用推奨度</p>
+                <p className="leading-relaxed">{analysis.hiring_recommendation}</p>
+              </div>
+
+              <div className="bg-blue-50 rounded-2xl border border-blue-100 p-4">
+                <p className="font-bold text-xs text-blue-600 mb-2">パーソナリティ分析</p>
+                <p className="text-xs text-slate-600 leading-relaxed">{analysis.personality}</p>
+              </div>
+            </div>
+
+            {/* Right: report */}
+            <div className="flex-1 space-y-4">
+              <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+                <h2 className="font-bold text-slate-800 mb-1">エグゼクティブ・レポート</h2>
+                <p className="text-sm text-slate-500 mb-4">{analysis.overall}</p>
+                <div className="bg-slate-50 rounded-xl p-4 text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+                  {analysis.detail}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs font-bold text-orange-500 mb-1">💡 この商談の山場</p>
+                    <p className="text-sm text-slate-600 leading-relaxed">{analysis.critical_point}</p>
+                  </div>
+                  <div className="border-t border-slate-100 pt-4">
+                    <p className="text-xs font-bold text-blue-500 mb-1">🎯 理想的な立ち回り</p>
+                    <p className="text-sm text-slate-600 leading-relaxed">{analysis.best_approach}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 print:hidden">
+                <button
+                  onClick={downloadPDF}
+                  className="flex-1 bg-slate-900 text-white rounded-xl py-3 font-semibold hover:bg-slate-700 transition-colors text-sm"
+                >
+                  📄 PDFで保存
+                </button>
+                <button
+                  onClick={() => {
+                    setScreen("setup");
+                    setJd("");
+                    setMessages([]);
+                    setChatLogs([]);
+                    setRallyCount(0);
+                    setAnalysis(null);
+                    setSimConfig(null);
+                    setError("");
+                  }}
+                  className="flex-1 border border-slate-200 text-slate-600 rounded-xl py-3 font-semibold hover:bg-slate-50 transition-colors text-sm"
+                >
+                  もう一度シミュレーション
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
