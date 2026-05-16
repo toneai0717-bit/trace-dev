@@ -28,7 +28,9 @@ export async function POST(req: NextRequest) {
 <DETAIL>各ラリーの詳細フィードバック</DETAIL>
 <CRITICAL_POINT>この商談の最大の山場とプレイヤーの対応（1文）</CRITICAL_POINT>
 <BEST_APPROACH>理想的な立ち回りの具体例（2文）</BEST_APPROACH>
-<HIRING_RECOMMENDATION>強く推奨／推奨／要検討／非推奨 とその理由（1文）</HIRING_RECOMMENDATION>`,
+<HIRING_RECOMMENDATION>強く推奨／推奨／要検討／非推奨 とその理由（1文）</HIRING_RECOMMENDATION>
+<ONBOARDING_SCENARIO>入社後にこの候補者が真価を発揮しそうな具体的な場面・シナリオ（2〜3文）</ONBOARDING_SCENARIO>
+<RISK_POINTS>採用した場合の懸念点とフォローアップすべきポイント（2〜3文）</RISK_POINTS>`,
       messages: [
         {
           role: "user",
@@ -58,6 +60,8 @@ export async function POST(req: NextRequest) {
       critical_point: extract("CRITICAL_POINT"),
       best_approach: extract("BEST_APPROACH"),
       hiring_recommendation: extract("HIRING_RECOMMENDATION"),
+      onboarding_scenario: extract("ONBOARDING_SCENARIO"),
+      risk_points: extract("RISK_POINTS"),
     });
   } catch (e) {
     console.error(e);

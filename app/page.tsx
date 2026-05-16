@@ -36,6 +36,8 @@ interface AnalysisResult {
   critical_point: string;
   best_approach: string;
   hiring_recommendation: string;
+  onboarding_scenario: string;
+  risk_points: string;
 }
 
 const SCORE_LABELS = ["論理思考力", "交渉力", "状況適応力", "主体性", "ストレス耐性"];
@@ -229,6 +231,8 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       critical_point: "第3ラリーでの納期短縮要求の場面。ここでの判断が商談全体の流れを左右した。強引に押すのではなく、相手のキャパシティを確認した上で段階的な対応を提案したことで、信頼を損なわずに要求を通すことができた。",
       best_approach: "冒頭で発注背景とデータセンター向け案件の重要性を共有した上で、サプライヤー側の制約を引き出しながら双方にとって最適な着地点を探る交渉スタイルが理想的。価格・納期・品質のトレードオフを明確に提示しつつ、長期取引の観点から関係性を強調する。",
       hiring_recommendation: "強く推奨：論理的思考と状況適応力のバランスが優れており、グローバル購買業務において即戦力となる可能性が高い。特にサプライヤーとの信頼関係構築を重視する姿勢は、本ポジションの要件に合致している。",
+      onboarding_scenario: "入社後3〜6ヶ月の立ち上げ期において、既存サプライヤーとの定期レビュー交渉を早期に担当させることで真価を発揮すると想定される。特に複数部門との連携が必要な調整業務では、冷静な状況判断力と誠実なコミュニケーションスタイルが組織内の信頼獲得につながるだろう。メキシコ工場との連携業務においても、準備を徹底する姿勢がリスク管理面で貢献できる。",
+      risk_points: "価格交渉における数値的な根拠の提示が遅い傾向があり、タフな交渉相手に対してはやや受け身になる可能性がある。入社後は価格分析・コスト構造の把握トレーニングを早期に実施することを推奨する。また、慎重な判断スタイルゆえ、スピードが求められる緊急調達場面では意思決定のサポート体制を整えておくと良い。",
     });
     setSimConfig({
       title: "バッテリー部材 納期・価格交渉",
@@ -558,6 +562,16 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                     <p className="text-sm text-slate-600 leading-relaxed">{analysis.best_approach}</p>
                   </div>
                 </div>
+              </div>
+
+              <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-6 shadow-sm">
+                <p className="text-xs font-bold text-emerald-600 mb-2">🚀 入社後の活躍シナリオ</p>
+                <p className="text-sm text-slate-600 leading-relaxed">{analysis.onboarding_scenario}</p>
+              </div>
+
+              <div className="bg-red-50 rounded-2xl border border-red-100 p-6 shadow-sm">
+                <p className="text-xs font-bold text-red-500 mb-2">⚠️ 懸念点・フォローアップポイント</p>
+                <p className="text-sm text-slate-600 leading-relaxed">{analysis.risk_points}</p>
               </div>
 
               <div className="flex gap-3 print:hidden">
