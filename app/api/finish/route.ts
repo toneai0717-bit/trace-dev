@@ -5,7 +5,13 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: NextRequest) {
   try {
-    const { chatLogs, targetPersona } = await req.json();
+    const { chatLogs, targetPersona, scoreLabels } = await req.json();
+
+    const labels: string[] = Array.isArray(scoreLabels) && scoreLabels.length >= 3
+      ? scoreLabels
+      : ["論理思考力", "交渉力", "状況適応力", "主体性", "ストレス耐性"];
+
+    const scoreItems = labels.map((label, i) => `${i + 1}. ${label}`).join("\n");
 
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
@@ -15,14 +21,10 @@ export async function POST(req: NextRequest) {
 この求人が求める人物像：「${targetPersona}」
 
 【評価項目（各10点満点）】
-1. 論理思考力：主張の構成・根拠の質・数値活用
-2. 交渉力：押し引きのバランス・クロージング能力
-3. 状況適応力：相手の反応を読んで戦術を変える力
-4. 主体性：自らオーナーシップを持ち能動的に動けるか
-5. ストレス耐性：プレッシャー下での冷静さ・判断力
+${scoreItems}
 
 以下のタグで出力してください（各フィールドは簡潔に）：
-<SCORES>数値,数値,数値,数値,数値</SCORES>
+<SCORES>評価項目の順番通りにスコアをカンマ区切りで（例：${labels.map(() => "数値").join(",")}）</SCORES>
 <OVERALL>総合評価コメント（2文）</OVERALL>
 <PERSONALITY>人物像との合致度分析（2文）</PERSONALITY>
 <DETAIL>各ラリーの詳細フィードバック</DETAIL>

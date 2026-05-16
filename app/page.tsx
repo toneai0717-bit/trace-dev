@@ -21,6 +21,7 @@ interface SimConfig {
   aiRole: string;
   targetPersona: string;
   firstMsg: string;
+  scoreLabels: string[];
 }
 
 interface ChatLog {
@@ -41,7 +42,7 @@ interface AnalysisResult {
   interview_questions: string;
 }
 
-const SCORE_LABELS = ["論理思考力", "交渉力", "状況適応力", "主体性", "ストレス耐性"];
+const DEFAULT_SCORE_LABELS = ["論理思考力", "交渉力", "状況適応力", "主体性", "ストレス耐性"];
 
 const RECOMMENDATION_COLOR: Record<string, string> = {
   "強く推奨": "bg-emerald-50 border-emerald-400 text-emerald-800",
@@ -205,6 +206,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       body: JSON.stringify({
         chatLogs: logs,
         targetPersona: simConfig?.targetPersona ?? "",
+        scoreLabels: simConfig?.scoreLabels ?? [],
       }),
     });
     const data = await res.json();
@@ -243,6 +245,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       aiRole: "田中部長 / 中堅サプライヤー株式会社アルファテック 営業部長",
       targetPersona: "サプライヤーと良好な関係を維持しながら、コスト・納期・品質の3軸を同時に交渉できる購買のプロ。",
       firstMsg: "お世話になっております。アルファテックの田中です。\n先日ご連絡いただいた増産のご要望の件で、一度詳しくお話しできればと思いご連絡しました。\n弊社としても前向きに検討したいのですが、現状の生産ラインの制約もありまして…。\nまずは現状をご確認いただけますでしょうか。",
+      scoreLabels: ["コスト交渉力", "リスク管理力", "関係構築力", "数値分析力", "戦略立案力"],
     });
     setScreen("result");
   }
@@ -254,9 +257,11 @@ AIの拡大など急激に増加してるデータを管理するインフラで
     return "要検討";
   }
 
+  const scoreLabels = simConfig?.scoreLabels ?? DEFAULT_SCORE_LABELS;
+
   const radarData = analysis
     ? {
-        labels: SCORE_LABELS,
+        labels: scoreLabels,
         datasets: [
           {
             data: analysis.scores.map((s) => Math.min(Number(s), 10)),
@@ -550,7 +555,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                 )}
               </div>
               <div className="flex-1 space-y-2">
-                {SCORE_LABELS.map((label, i) => (
+                {scoreLabels.map((label, i) => (
                   <div key={label} className="flex items-center justify-between text-xs">
                     <span className="text-slate-500 w-20">{label}</span>
                     <div className="flex items-center gap-2 flex-1">

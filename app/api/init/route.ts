@@ -23,7 +23,8 @@ export async function POST(req: NextRequest) {
 <CONTEXT><ul><li>状況1</li><li>数値データ（単価・数量など）</li><li>課題</li><li>プレイヤーのミッション</li></ul></CONTEXT>
 <AI_ROLE>会社名・担当者名・役職</AI_ROLE>
 <TARGET_PERSONA>JDが求める人物像（1〜2文）</TARGET_PERSONA>
-<FIRST_MSG>宛名と要件のみのビジネスメール（5行以内）</FIRST_MSG>`,
+<FIRST_MSG>宛名と要件のみのビジネスメール（5行以内）</FIRST_MSG>
+<SCORE_LABELS>このJDの職種・人物像に合わせて候補者評価に最も重要な能力軸を3〜7個、カンマ区切りで列挙。軸名は5文字以内の日本語で（例：コスト交渉力,リスク管理力,関係構築力,数値分析力,戦略立案力）</SCORE_LABELS>`,
         },
       ],
     });
@@ -38,12 +39,18 @@ export async function POST(req: NextRequest) {
       return match ? match[1].trim() : "";
     };
 
+    const scoreLabels = extract("SCORE_LABELS")
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
     const result = {
       title: extract("TITLE"),
       context: extract("CONTEXT"),
       aiRole: extract("AI_ROLE"),
       targetPersona: extract("TARGET_PERSONA"),
       firstMsg: extract("FIRST_MSG"),
+      scoreLabels: scoreLabels.length >= 3 ? scoreLabels : ["論理思考力", "交渉力", "状況適応力", "主体性", "ストレス耐性"],
     };
 
     if (!result.title || !result.firstMsg) {
