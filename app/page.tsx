@@ -115,6 +115,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState("");
   const [showContext, setShowContext] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -488,116 +489,97 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 
       {/* Result screen */}
       {screen === "result" && analysis && (
-        <div className="max-w-5xl mx-auto p-6 print:p-0">
-          <div className="flex gap-6 print:gap-4">
-            {/* Left: chart + personality */}
-            <div className="w-72 flex-shrink-0 space-y-4">
-              <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
-                <h3 className="font-bold text-slate-700 text-sm mb-4 text-center">スコア分析</h3>
+        <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+
+          {/* ① 採用推奨度 → 一番でかく最初に */}
+          <div className={`rounded-2xl border-2 p-8 text-center ${RECOMMENDATION_COLOR[getRecommendationKey(analysis.hiring_recommendation)]}`}>
+            <p className="text-xs font-bold uppercase tracking-widest mb-2 opacity-60">採用推奨度</p>
+            <p className="text-4xl font-black mb-4">{getRecommendationKey(analysis.hiring_recommendation)}</p>
+            <p className="text-sm leading-relaxed">{analysis.overall}</p>
+          </div>
+
+          {/* ② 活躍シナリオ・懸念点 → 採用後に何が起きるか */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-5">
+              <p className="text-xs font-bold text-emerald-600 mb-2">🚀 入社後の活躍シナリオ</p>
+              <p className="text-sm text-slate-600 leading-relaxed">{analysis.onboarding_scenario}</p>
+            </div>
+            <div className="bg-red-50 rounded-2xl border border-red-100 p-5">
+              <p className="text-xs font-bold text-red-500 mb-2">⚠️ 懸念点・フォローアップ</p>
+              <p className="text-sm text-slate-600 leading-relaxed">{analysis.risk_points}</p>
+            </div>
+          </div>
+
+          {/* ③ スコア → コンパクトに */}
+          <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">5軸スコア</p>
+            <div className="flex gap-6 items-center">
+              <div className="w-40 flex-shrink-0">
                 {radarData && (
-                  <Radar
-                    data={radarData}
-                    options={{
-                      scales: {
-                        r: {
-                          min: 0,
-                          max: 10,
-                          ticks: { display: false, stepSize: 2 },
-                          grid: { color: "#e2e8f0" },
-                          pointLabels: { font: { size: 11 } },
-                        },
-                      },
-                      plugins: { legend: { display: false } },
-                    }}
-                  />
+                  <Radar data={radarData} options={{
+                    scales: { r: { min: 0, max: 10, ticks: { display: false }, grid: { color: "#e2e8f0" }, pointLabels: { font: { size: 10 } } } },
+                    plugins: { legend: { display: false } },
+                  }} />
                 )}
-                <div className="mt-4 space-y-2">
-                  {SCORE_LABELS.map((label, i) => (
-                    <div key={label} className="flex items-center justify-between text-xs">
-                      <span className="text-slate-500">{label}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 bg-slate-100 rounded-full h-1.5">
-                          <div
-                            className="bg-blue-500 h-1.5 rounded-full"
-                            style={{ width: `${(analysis.scores[i] / 10) * 100}%` }}
-                          />
-                        </div>
-                        <span className="font-bold text-slate-700 w-6 text-right">{analysis.scores[i]}</span>
+              </div>
+              <div className="flex-1 space-y-2">
+                {SCORE_LABELS.map((label, i) => (
+                  <div key={label} className="flex items-center justify-between text-xs">
+                    <span className="text-slate-500 w-20">{label}</span>
+                    <div className="flex items-center gap-2 flex-1">
+                      <div className="flex-1 bg-slate-100 rounded-full h-1.5">
+                        <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${(analysis.scores[i] / 10) * 100}%` }} />
                       </div>
+                      <span className="font-bold text-slate-700 w-4 text-right">{analysis.scores[i]}</span>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Hiring recommendation */}
-              <div className={`rounded-2xl border-l-4 p-4 text-sm ${RECOMMENDATION_COLOR[getRecommendationKey(analysis.hiring_recommendation)]}`}>
-                <p className="font-bold text-xs mb-1">採用推奨度</p>
-                <p className="leading-relaxed">{analysis.hiring_recommendation}</p>
-              </div>
-
-              <div className="bg-blue-50 rounded-2xl border border-blue-100 p-4">
-                <p className="font-bold text-xs text-blue-600 mb-2">パーソナリティ分析</p>
-                <p className="text-xs text-slate-600 leading-relaxed">{analysis.personality}</p>
+                  </div>
+                ))}
               </div>
             </div>
+          </div>
 
-            {/* Right: report */}
-            <div className="flex-1 space-y-4">
+          {/* ④ 詳細レポート → 折りたたみ */}
+          <button
+            onClick={() => setShowDetail(!showDetail)}
+            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl py-3 text-sm font-medium transition-colors"
+          >
+            {showDetail ? "▲ 詳細レポートを閉じる" : "▼ 詳細レポートを見る"}
+          </button>
+
+          {showDetail && (
+            <div className="space-y-4">
               <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-                <h2 className="font-bold text-slate-800 mb-1">エグゼクティブ・レポート</h2>
-                <p className="text-sm text-slate-500 mb-4">{analysis.overall}</p>
-                <div className="bg-slate-50 rounded-xl p-4 text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                  {analysis.detail}
-                </div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">パーソナリティ分析</p>
+                <p className="text-sm text-slate-600 leading-relaxed">{analysis.personality}</p>
               </div>
-
               <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-xs font-bold text-orange-500 mb-1">💡 この商談の山場</p>
-                    <p className="text-sm text-slate-600 leading-relaxed">{analysis.critical_point}</p>
-                  </div>
-                  <div className="border-t border-slate-100 pt-4">
-                    <p className="text-xs font-bold text-blue-500 mb-1">🎯 理想的な立ち回り</p>
-                    <p className="text-sm text-slate-600 leading-relaxed">{analysis.best_approach}</p>
-                  </div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">詳細フィードバック</p>
+                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{analysis.detail}</p>
+              </div>
+              <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-4">
+                <div>
+                  <p className="text-xs font-bold text-orange-500 mb-1">💡 この商談の山場</p>
+                  <p className="text-sm text-slate-600 leading-relaxed">{analysis.critical_point}</p>
                 </div>
-              </div>
-
-              <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-6 shadow-sm">
-                <p className="text-xs font-bold text-emerald-600 mb-2">🚀 入社後の活躍シナリオ</p>
-                <p className="text-sm text-slate-600 leading-relaxed">{analysis.onboarding_scenario}</p>
-              </div>
-
-              <div className="bg-red-50 rounded-2xl border border-red-100 p-6 shadow-sm">
-                <p className="text-xs font-bold text-red-500 mb-2">⚠️ 懸念点・フォローアップポイント</p>
-                <p className="text-sm text-slate-600 leading-relaxed">{analysis.risk_points}</p>
-              </div>
-
-              <div className="flex gap-3 print:hidden">
-                <button
-                  onClick={downloadPDF}
-                  className="flex-1 bg-slate-900 text-white rounded-xl py-3 font-semibold hover:bg-slate-700 transition-colors text-sm"
-                >
-                  📄 PDFで保存
-                </button>
-                <button
-                  onClick={() => {
-                    setScreen("setup");
-                    setJd("");
-                    setMessages([]);
-                    setChatLogs([]);
-                    setRallyCount(0);
-                    setAnalysis(null);
-                    setSimConfig(null);
-                    setError("");
-                  }}
-                  className="flex-1 border border-slate-200 text-slate-600 rounded-xl py-3 font-semibold hover:bg-slate-50 transition-colors text-sm"
-                >
-                  もう一度シミュレーション
-                </button>
+                <div className="border-t border-slate-100 pt-4">
+                  <p className="text-xs font-bold text-blue-500 mb-1">🎯 理想的な立ち回り</p>
+                  <p className="text-sm text-slate-600 leading-relaxed">{analysis.best_approach}</p>
+                </div>
               </div>
             </div>
+          )}
+
+          {/* ⑤ アクション */}
+          <div className="flex gap-3 print:hidden">
+            <button onClick={downloadPDF} className="flex-1 bg-slate-900 text-white rounded-xl py-3 font-semibold hover:bg-slate-700 transition-colors text-sm">
+              📄 PDFで保存
+            </button>
+            <button
+              onClick={() => { setScreen("setup"); setJd(""); setMessages([]); setChatLogs([]); setRallyCount(0); setAnalysis(null); setSimConfig(null); setError(""); setShowDetail(false); }}
+              className="flex-1 border border-slate-200 text-slate-600 rounded-xl py-3 font-semibold hover:bg-slate-50 transition-colors text-sm"
+            >
+              もう一度
+            </button>
           </div>
         </div>
       )}
