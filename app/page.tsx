@@ -60,6 +60,7 @@ export default function Home() {
   const [rallyCount, setRallyCount] = useState(0);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState("");
+  const [showContext, setShowContext] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -327,18 +328,29 @@ export default function Home() {
 
       {/* Sim screen */}
       {screen === "sim" && simConfig && (
-        <div className="flex gap-5 h-[calc(100vh-64px)] p-5">
-          {/* Left: context */}
-          <div className="w-80 flex-shrink-0 bg-white rounded-2xl border border-slate-100 p-5 overflow-y-auto shadow-sm">
-            <h3 className="font-bold text-blue-600 text-sm mb-3">{simConfig.title}</h3>
-            <div
-              className="text-xs text-slate-600 leading-relaxed [&_h3]:font-bold [&_h3]:text-slate-700 [&_h3]:mt-4 [&_h3]:mb-2 [&_ul]:pl-4 [&_li]:mb-1 [&_table]:text-xs [&_td]:p-2"
-              dangerouslySetInnerHTML={{ __html: simConfig.context }}
-            />
+        <div className="flex flex-col md:flex-row gap-3 md:gap-5 h-[calc(100dvh-56px)] p-3 md:p-5">
+          {/* Context: PC=左カラム固定 / SP=トグル */}
+          <div className="md:w-80 md:flex-shrink-0 flex flex-col">
+            {/* SPのトグルボタン */}
+            <button
+              onClick={() => setShowContext(!showContext)}
+              className="md:hidden flex items-center justify-between bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold text-blue-600 shadow-sm mb-2"
+            >
+              <span>📋 {simConfig.title}</span>
+              <span>{showContext ? "▲ 閉じる" : "▼ シナリオ確認"}</span>
+            </button>
+            {/* コンテキスト本体 */}
+            <div className={`${showContext ? "block" : "hidden"} md:block bg-white rounded-2xl border border-slate-100 p-5 overflow-y-auto shadow-sm flex-1`}>
+              <h3 className="font-bold text-blue-600 text-sm mb-3 hidden md:block">{simConfig.title}</h3>
+              <div
+                className="text-xs text-slate-600 leading-relaxed [&_h3]:font-bold [&_h3]:text-slate-700 [&_h3]:mt-4 [&_h3]:mb-2 [&_ul]:pl-4 [&_li]:mb-1 [&_table]:text-xs [&_td]:p-2"
+                dangerouslySetInnerHTML={{ __html: simConfig.context }}
+              />
+            </div>
           </div>
 
           {/* Right: chat */}
-          <div className="flex-1 flex flex-col gap-4">
+          <div className="flex-1 flex flex-col gap-3 md:gap-4 min-h-0">
             <div ref={chatRef} className="flex-1 bg-white rounded-2xl border border-slate-100 p-5 overflow-y-auto shadow-sm flex flex-col gap-4">
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -360,7 +372,7 @@ export default function Home() {
 
             {/* Input area */}
             <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
-              <div className="flex gap-4 mb-3">
+              <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-3">
                 <div className="flex-1">
                   <label className="block text-xs font-bold text-slate-400 mb-1">返信内容（アクション）</label>
                   <textarea
