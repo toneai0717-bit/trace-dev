@@ -524,7 +524,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                   .split("\n")
                   .filter((line) => line.trim())
                   .map((line, i) => {
-                    const match = line.match(/^\d+\.\s*(.*)/s);
+                    const match = line.match(/^\d+\.\s*(.*)/);
                     const text = match ? match[1] : line;
                     return (
                       <li key={i} className="text-sm text-slate-600 leading-relaxed flex gap-2">
