@@ -13,7 +13,7 @@ import {
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip);
 
-type Screen = "setup" | "sim" | "result";
+type Screen = "top" | "setup" | "sim" | "result";
 
 interface SimConfig {
   title: string;
@@ -48,7 +48,7 @@ const RECOMMENDATION_COLOR: Record<string, string> = {
 };
 
 export default function Home() {
-  const [screen, setScreen] = useState<Screen>("setup");
+  const [screen, setScreen] = useState<Screen>("top");
   const [jd, setJd] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("");
@@ -206,11 +206,98 @@ export default function Home() {
           TRACE
         </div>
         <div className="text-xs text-slate-400">
+          {screen === "top" && "仕事シミュレーション採用"}
           {screen === "setup" && "仕事シミュレーション採用"}
           {screen === "sim" && `Rally ${rallyCount} / 最大6`}
           {screen === "result" && "評価レポート"}
         </div>
       </header>
+
+      {/* Top / Landing screen */}
+      {screen === "top" && (
+        <div className="min-h-[calc(100vh-56px)] bg-slate-900 text-white">
+
+          {/* Hero */}
+          <div className="flex flex-col items-center justify-center text-center px-6 py-24">
+            <p className="text-xs tracking-widest text-blue-400 uppercase mb-4">Next Generation Hiring</p>
+            <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
+              SPIでは測れない、<br />
+              <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
+                本物の仕事力
+              </span>
+              を見抜く。
+            </h1>
+            <p className="text-slate-400 text-base md:text-lg max-w-xl leading-relaxed mb-10">
+              求人票を貼るだけで、AIがリアルな業務シナリオを生成。<br />
+              候補者が実際にどう動くかを、採用前に確かめる。
+            </p>
+            <button
+              onClick={() => setScreen("setup")}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-10 py-4 rounded-2xl text-sm transition-colors"
+            >
+              無料で試す →
+            </button>
+          </div>
+
+          {/* SPIの問題点 */}
+          <div className="bg-slate-800 px-6 py-16">
+            <div className="max-w-3xl mx-auto">
+              <p className="text-center text-xs tracking-widest text-slate-400 uppercase mb-8">The Problem</p>
+              <h2 className="text-2xl font-bold text-center mb-10">SPIは、仕事ができる人を選べない。</h2>
+              <div className="grid md:grid-cols-3 gap-4">
+                {[
+                  { icon: "📚", title: "対策で突破できる", desc: "SPIは暗記と練習で点数が上がる。本来の能力を測れていない。" },
+                  { icon: "❓", title: "業務と無関係", desc: "言語・非言語の問題と、実際の仕事能力は別物。採用後にミスマッチが起きる。" },
+                  { icon: "😤", title: "受ける側も嫌い", desc: "意味を感じられないテストに優秀な候補者ほど嫌気がさしている。" },
+                ].map((item) => (
+                  <div key={item.title} className="bg-slate-700/50 rounded-2xl p-5">
+                    <p className="text-2xl mb-3">{item.icon}</p>
+                    <p className="font-bold text-sm mb-2">{item.title}</p>
+                    <p className="text-xs text-slate-400 leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* TRACEの仕組み */}
+          <div className="px-6 py-16">
+            <div className="max-w-3xl mx-auto">
+              <p className="text-center text-xs tracking-widest text-blue-400 uppercase mb-8">How it works</p>
+              <h2 className="text-2xl font-bold text-center mb-10">3ステップで、採用精度が上がる。</h2>
+              <div className="space-y-4">
+                {[
+                  { step: "01", title: "求人票を貼るだけ", desc: "JDをペーストすると、AIがその職種に合わせたリアルな業務シナリオを自動生成。営業なら商談、企画なら提案交渉など、仕事の現場そのままのシナリオが作られる。" },
+                  { step: "02", title: "候補者がシナリオに挑戦", desc: "候補者はAIが演じる取引先・上司・顧客と実際に会話する。返答内容だけでなく、その狙いや戦略まで入力することで思考プロセスまで可視化される。" },
+                  { step: "03", title: "AIが即座に評価レポートを生成", desc: "論理思考力・交渉力・状況適応力・主体性・ストレス耐性の5軸でスコアリング。採用推奨度と詳細な所見レポートを即座に出力する。" },
+                ].map((item) => (
+                  <div key={item.step} className="flex gap-5 bg-slate-800/50 rounded-2xl p-5">
+                    <p className="text-3xl font-black text-blue-500/30 flex-shrink-0">{item.step}</p>
+                    <div>
+                      <p className="font-bold text-sm mb-1">{item.title}</p>
+                      <p className="text-xs text-slate-400 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="bg-slate-800 px-6 py-16 text-center">
+            <h2 className="text-2xl font-bold mb-4">まず、試してみてください。</h2>
+            <p className="text-slate-400 text-sm mb-8">求人票があれば、今すぐ無料で体験できます。</p>
+            <button
+              onClick={() => setScreen("setup")}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-10 py-4 rounded-2xl text-sm transition-colors"
+            >
+              無料で試す →
+            </button>
+            <p className="text-xs text-slate-600 mt-4">クレジットカード不要 · アカウント登録不要</p>
+          </div>
+
+        </div>
+      )}
 
       {/* Setup screen */}
       {screen === "setup" && (
