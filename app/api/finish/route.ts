@@ -30,7 +30,8 @@ export async function POST(req: NextRequest) {
 <BEST_APPROACH>理想的な立ち回りの具体例（2文）</BEST_APPROACH>
 <HIRING_RECOMMENDATION>強く推奨／推奨／要検討／非推奨 とその理由（1文）</HIRING_RECOMMENDATION>
 <ONBOARDING_SCENARIO>入社後にこの候補者が真価を発揮しそうな具体的な場面・シナリオ（2〜3文）</ONBOARDING_SCENARIO>
-<RISK_POINTS>採用した場合の懸念点とフォローアップすべきポイント（2〜3文）</RISK_POINTS>`,
+<RISK_POINTS>採用した場合の懸念点とフォローアップすべきポイント（2〜3文）</RISK_POINTS>
+<INTERVIEW_QUESTIONS>シミュレーションの各ラリーにおける「理想の行動」と「受験者が実際にとった行動」のギャップをもとに、面接で深掘りすべき質問を3〜5個、番号付きで列挙する。各質問は「第Nラリーで〜した場面について」のように具体的な場面を明示すること。準備された回答では答えにくい、行動の背景にある判断軸・優先順位・リスク認識を引き出す質問にすること。</INTERVIEW_QUESTIONS>`,
       messages: [
         {
           role: "user",
@@ -62,6 +63,7 @@ export async function POST(req: NextRequest) {
       hiring_recommendation: extract("HIRING_RECOMMENDATION"),
       onboarding_scenario: extract("ONBOARDING_SCENARIO"),
       risk_points: extract("RISK_POINTS"),
+      interview_questions: extract("INTERVIEW_QUESTIONS"),
     });
   } catch (e) {
     console.error(e);

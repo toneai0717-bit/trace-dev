@@ -38,6 +38,7 @@ interface AnalysisResult {
   hiring_recommendation: string;
   onboarding_scenario: string;
   risk_points: string;
+  interview_questions: string;
 }
 
 const SCORE_LABELS = ["論理思考力", "交渉力", "状況適応力", "主体性", "ストレス耐性"];
@@ -234,6 +235,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       hiring_recommendation: "強く推奨：論理的思考と状況適応力のバランスが優れており、グローバル購買業務において即戦力となる可能性が高い。特にサプライヤーとの信頼関係構築を重視する姿勢は、本ポジションの要件に合致している。",
       onboarding_scenario: "入社後3〜6ヶ月の立ち上げ期において、既存サプライヤーとの定期レビュー交渉を早期に担当させることで真価を発揮すると想定される。特に複数部門との連携が必要な調整業務では、冷静な状況判断力と誠実なコミュニケーションスタイルが組織内の信頼獲得につながるだろう。メキシコ工場との連携業務においても、準備を徹底する姿勢がリスク管理面で貢献できる。",
       risk_points: "価格交渉における数値的な根拠の提示が遅い傾向があり、タフな交渉相手に対してはやや受け身になる可能性がある。入社後は価格分析・コスト構造の把握トレーニングを早期に実施することを推奨する。また、慎重な判断スタイルゆえ、スピードが求められる緊急調達場面では意思決定のサポート体制を整えておくと良い。",
+      interview_questions: "1. 第2ラリーで価格の数値根拠を提示せず関係性の話に切り替えた場面について、なぜその判断をしたのか教えてください。価格交渉において数値よりも関係性を優先した理由は何ですか？\n2. 第3ラリーで納期短縮を強く求めた際、相手が難色を示した時点でどのような選択肢を頭の中で検討していましたか？もし相手が完全に拒否した場合の次の手はありましたか？\n3. 今回のシミュレーション全体を通じて、交渉において「譲れないライン」と「妥協できるライン」をどう設定していましたか？事前にどこまで考えていましたか？\n4. 第1ラリーで相手の状況確認から入ったことは評価できますが、その情報をその後の交渉にどう活かしましたか？実際の購買業務でも同様のアプローチをとりますか？",
     });
     setSimConfig({
       title: "バッテリー部材 納期・価格交渉",
@@ -280,9 +282,12 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 
       {/* Header */}
       <header className="bg-slate-900 text-white px-8 py-4 flex justify-between items-center shadow-lg">
-        <div className="font-black tracking-widest text-lg bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
+        <button
+          onClick={() => setScreen("top")}
+          className="font-black tracking-widest text-lg bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent hover:opacity-70 transition-opacity"
+        >
           TRACE
-        </div>
+        </button>
         <div className="text-xs text-slate-400">
           {screen === "top" && "仕事シミュレーション採用"}
           {screen === "setup" && "仕事シミュレーション採用"}
@@ -510,7 +515,29 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             </div>
           </div>
 
-          {/* ③ スコア → コンパクトに */}
+          {/* ③ 面接で確認すべき質問 */}
+          {analysis.interview_questions && (
+            <div className="bg-violet-50 rounded-2xl border border-violet-100 p-5">
+              <p className="text-xs font-bold text-violet-600 mb-3">🎤 面接で確認すべき質問</p>
+              <ol className="space-y-3">
+                {analysis.interview_questions
+                  .split("\n")
+                  .filter((line) => line.trim())
+                  .map((line, i) => {
+                    const match = line.match(/^\d+\.\s*(.*)/s);
+                    const text = match ? match[1] : line;
+                    return (
+                      <li key={i} className="text-sm text-slate-600 leading-relaxed flex gap-2">
+                        <span className="text-violet-500 font-black flex-shrink-0">{i + 1}.</span>
+                        <span>{text}</span>
+                      </li>
+                    );
+                  })}
+              </ol>
+            </div>
+          )}
+
+          {/* ④ スコア → コンパクトに */}
           <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">5軸スコア</p>
             <div className="flex gap-6 items-center">
