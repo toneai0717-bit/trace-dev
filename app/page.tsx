@@ -618,7 +618,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                   { icon: "❓", title: "業務と無関係", desc: "言語・非言語の問題と、実際の仕事能力は別物。採用後にミスマッチが起きる。" },
                   { icon: "😤", title: "受ける側も嫌い", desc: "意味を感じられないテストに優秀な候補者ほど嫌気がさしている。" },
                 ].map((item) => (
-                  <div key={item.title} className="bg-slate-700/50 rounded-2xl p-5">
+                  <div key={item.title} className="bg-slate-600/60 rounded-2xl p-5">
                     <p className="text-2xl mb-3">{item.icon}</p>
                     <p className="font-bold text-sm mb-2">{item.title}</p>
                     <p className="text-xs text-slate-400 leading-relaxed">{item.desc}</p>
