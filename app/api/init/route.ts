@@ -27,7 +27,12 @@ export async function POST(req: NextRequest) {
 以下のタグで出力してください。各フィールドは短く簡潔に（CONTEXTは箇条書き3〜5行、FIRST_MSGは5行以内）：
 
 <TITLE>シミュレーションタイトル（20字以内）</TITLE>
-<CONTEXT><ul><li>状況説明</li><li>数値データがあれば</li><li>課題・背景</li><li>プレイヤーのミッション</li></ul></CONTEXT>
+<CONTEXT>以下の形式で出力（各項目は1〜2文、簡潔に）：
+<p><span class="label">【状況】</span>状況説明</p>
+<p><span class="label">【数値】</span>数値データ（なければ省略）</p>
+<p><span class="label">【課題】</span>課題・背景</p>
+<p><span class="label">【ミッション】</span>プレイヤーのミッション</p>
+</CONTEXT>
 <AI_ROLE>AIが演じる相手の会社名・氏名・役職（プレイヤーの対話相手）</AI_ROLE>
 <TARGET_PERSONA>JDが求める人物像（1〜2文）</TARGET_PERSONA>
 <FIRST_MSG>AIが演じる相手キャラクターからプレイヤーへの最初のメッセージ（5行以内）</FIRST_MSG>

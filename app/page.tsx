@@ -741,7 +741,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       {screen === "sim" && simConfig && (
         <div className="flex flex-col md:flex-row gap-3 md:gap-5 h-[calc(100dvh-44px)] p-3 md:p-5">
           {/* Context: PC=左カラム固定 / SP=トグル */}
-          <div className="md:w-80 md:flex-shrink-0 flex flex-col">
+          <div className="md:w-52 md:flex-shrink-0 flex flex-col">
             {/* SPのトグルボタン */}
             <button
               onClick={() => setShowContext(!showContext)}
@@ -751,10 +751,10 @@ AIの拡大など急激に増加してるデータを管理するインフラで
               <span>{showContext ? "▲ 閉じる" : "▼ シナリオ確認"}</span>
             </button>
             {/* コンテキスト本体 */}
-            <div className={`${showContext ? "block" : "hidden"} md:block bg-white rounded-2xl border border-slate-100 p-5 overflow-y-auto shadow-sm flex-1`}>
-              <h3 className="font-bold text-blue-600 text-sm mb-3 hidden md:block">{simConfig.title}</h3>
+            <div className={`${showContext ? "block" : "hidden"} md:block bg-white rounded-2xl border border-slate-100 px-3 py-4 overflow-y-auto shadow-sm flex-1`}>
+              <h3 className="font-bold text-blue-600 text-xs mb-3 hidden md:block leading-snug">{simConfig.title}</h3>
               <div
-                className="text-xs text-slate-600 leading-relaxed [&_h3]:font-bold [&_h3]:text-slate-700 [&_h3]:mt-4 [&_h3]:mb-2 [&_ul]:pl-4 [&_li]:mb-1 [&_table]:text-xs [&_td]:p-2"
+                className="text-[11px] text-slate-600 leading-relaxed space-y-2 [&_.label]:font-bold [&_.label]:text-slate-700 [&_p]:leading-snug"
                 dangerouslySetInnerHTML={{ __html: simConfig.context }}
               />
             </div>
