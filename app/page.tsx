@@ -566,7 +566,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       )}
 
       {/* Header */}
-      <header className="bg-slate-900 text-white px-8 py-4 flex justify-between items-center shadow-lg">
+      <header className="bg-slate-900 text-white px-6 py-1.5 flex justify-between items-center shadow-lg">
         <button
           onClick={() => setScreen("top")}
           className="font-black tracking-widest text-lg bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent hover:opacity-70 transition-opacity"
@@ -583,7 +583,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 
       {/* Top / Landing screen */}
       {screen === "top" && (
-        <div className="min-h-[calc(100vh-56px)] bg-slate-900 text-white">
+        <div className="min-h-[calc(100vh-44px)] bg-slate-900 text-white">
 
           {/* Hero */}
           <div className="flex flex-col items-center justify-center text-center px-6 py-24">
@@ -739,7 +739,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 
       {/* Sim screen */}
       {screen === "sim" && simConfig && (
-        <div className="flex flex-col md:flex-row gap-3 md:gap-5 h-[calc(100dvh-56px)] p-3 md:p-5">
+        <div className="flex flex-col md:flex-row gap-3 md:gap-5 h-[calc(100dvh-44px)] p-3 md:p-5">
           {/* Context: PC=左カラム固定 / SP=トグル */}
           <div className="md:w-80 md:flex-shrink-0 flex flex-col">
             {/* SPのトグルボタン */}
