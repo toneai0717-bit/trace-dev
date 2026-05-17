@@ -826,7 +826,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 
           {/* ① スコア → 結果を一発で把握 */}
           <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-5 text-center">評価スコア</p>
+            <p className="text-base font-bold text-slate-600 mb-5 text-center">評価スコア</p>
             <div className="flex flex-col md:flex-row gap-6 items-center">
               <div className="w-56 flex-shrink-0">
                 {radarData && (
@@ -838,13 +838,13 @@ AIの拡大など急激に増加してるデータを管理するインフラで
               </div>
               <div className="flex-1 w-full space-y-3">
                 {scoreLabels.map((label, i) => (
-                  <div key={label} className="flex items-center gap-3 text-sm">
-                    <span className="text-slate-500 w-24 flex-shrink-0">{label}</span>
+                  <div key={label} className="flex items-center gap-3">
+                    <span className="text-slate-600 font-medium w-24 flex-shrink-0">{label}</span>
                     <div className="flex items-center gap-2 flex-1">
-                      <div className="flex-1 bg-slate-100 rounded-full h-2">
-                        <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${(analysis.scores[i] / 10) * 100}%` }} />
+                      <div className="flex-1 bg-slate-100 rounded-full h-3">
+                        <div className="bg-blue-500 h-3 rounded-full transition-all" style={{ width: `${(analysis.scores[i] / 10) * 100}%` }} />
                       </div>
-                      <span className="font-black text-slate-700 w-5 text-right">{analysis.scores[i]}</span>
+                      <span className="font-black text-slate-800 text-lg w-6 text-right">{analysis.scores[i]}</span>
                     </div>
                   </div>
                 ))}
@@ -854,9 +854,9 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 
           {/* ② 採用推奨度 → スコアを見た上で判定 */}
           <div className={`rounded-2xl border-2 p-6 text-center ${RECOMMENDATION_COLOR[getRecommendationKey(analysis.hiring_recommendation)]}`}>
-            <p className="text-xs font-bold uppercase tracking-widest mb-1 opacity-60">採用推奨度</p>
-            <p className="text-4xl font-black mb-3">{getRecommendationKey(analysis.hiring_recommendation)}</p>
-            <p className="text-sm leading-relaxed">{analysis.overall}</p>
+            <p className="text-sm font-bold mb-2 opacity-60">採用推奨度</p>
+            <p className="text-5xl font-black mb-4">{getRecommendationKey(analysis.hiring_recommendation)}</p>
+            <p className="text-base leading-relaxed">{analysis.overall}</p>
           </div>
 
           {/* ③ 活躍シナリオ・懸念点 → なぜその推奨度か */}
