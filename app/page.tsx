@@ -826,8 +826,8 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 
           {/* ① スコア → 結果を一発で把握 */}
           <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-            <p className="text-base font-bold text-slate-600 mb-5 text-center">評価スコア</p>
-            <div className="flex flex-col md:flex-row gap-6 items-center">
+            <p className="text-base font-bold text-slate-600 mb-3 text-center">評価スコア</p>
+            <div className="flex flex-col md:flex-row gap-4 items-center">
               <div className="w-56 flex-shrink-0">
                 {radarData && (
                   <Radar data={radarData} options={{
@@ -839,12 +839,12 @@ AIの拡大など急激に増加してるデータを管理するインフラで
               <div className="flex-1 w-full space-y-3">
                 {scoreLabels.map((label, i) => (
                   <div key={label} className="flex items-center gap-3">
-                    <span className="text-slate-600 font-medium w-24 flex-shrink-0">{label}</span>
+                    <span className="text-slate-600 font-semibold text-base w-24 flex-shrink-0">{label}</span>
                     <div className="flex items-center gap-2 flex-1">
-                      <div className="flex-1 bg-slate-100 rounded-full h-3">
-                        <div className="bg-blue-500 h-3 rounded-full transition-all" style={{ width: `${(analysis.scores[i] / 10) * 100}%` }} />
+                      <div className="flex-1 bg-slate-100 rounded-full h-4">
+                        <div className="bg-blue-500 h-4 rounded-full transition-all" style={{ width: `${(analysis.scores[i] / 10) * 100}%` }} />
                       </div>
-                      <span className="font-black text-slate-800 text-lg w-6 text-right">{analysis.scores[i]}</span>
+                      <span className="font-black text-slate-800 text-2xl w-8 text-right">{analysis.scores[i]}</span>
                     </div>
                   </div>
                 ))}
