@@ -69,7 +69,7 @@ ${rallyCount >= 3 ? "- 十分な交渉が行われたと判断できる場合は
     };
 
     // タグが取れなかった場合はテキスト全体をフォールバックとして使う
-    const reply = extract("REPLY") || text.replace(/<SHOULD_FINISH>.*?<\/SHOULD_FINISH>/s, "").trim();
+    const reply = extract("REPLY") || text.replace(/<SHOULD_FINISH>[\s\S]*?<\/SHOULD_FINISH>/, "").trim();
     const shouldFinish = extract("SHOULD_FINISH") === "yes";
 
     if (!reply) throw new Error("返信の生成に失敗しました");
