@@ -639,7 +639,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                   { step: "02", title: "候補者がシナリオに挑戦", desc: "候補者はAIが演じる取引先・上司・顧客と実際に会話する。返答内容だけでなく、その狙いや戦略まで入力することで思考プロセスまで可視化される。" },
                   { step: "03", title: "AIが即座に評価レポートを生成", desc: "論理思考力・交渉力・状況適応力・主体性・ストレス耐性の5軸でスコアリング。採用推奨度と詳細な所見レポートを即座に出力する。" },
                 ].map((item) => (
-                  <div key={item.step} className="flex gap-5 bg-slate-800/50 rounded-2xl p-5">
+                  <div key={item.step} className="flex gap-5 bg-slate-600/50 rounded-2xl p-5">
                     <p className="text-3xl font-black text-blue-500/30 flex-shrink-0">{item.step}</p>
                     <div>
                       <p className="font-bold text-sm mb-1">{item.title}</p>
