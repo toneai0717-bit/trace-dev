@@ -616,12 +616,41 @@ AIの拡大など急激に増加してるデータを管理するインフラで
               <h2 className="text-2xl font-bold text-center mb-10">SPIは、仕事ができる人を選べない。</h2>
               <div className="grid md:grid-cols-3 gap-4">
                 {[
-                  { icon: "📚", title: "対策で突破できる", desc: "SPIは暗記と練習で点数が上がる。本来の能力を測れていない。" },
-                  { icon: "❓", title: "業務と無関係", desc: "言語・非言語の問題と、実際の仕事能力は別物。採用後にミスマッチが起きる。" },
-                  { icon: "😤", title: "受ける側も嫌い", desc: "意味を感じられないテストに優秀な候補者ほど嫌気がさしている。" },
+                  {
+                    icon: (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                      </svg>
+                    ),
+                    color: "from-blue-500 to-blue-700",
+                    title: "対策で突破できる",
+                    desc: "SPIは暗記と練習で点数が上がる。本来の能力を測れていない。",
+                  },
+                  {
+                    icon: (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="9" y1="12" x2="15" y2="12"/>
+                      </svg>
+                    ),
+                    color: "from-violet-500 to-violet-700",
+                    title: "業務と無関係",
+                    desc: "言語・非言語の問題と、実際の仕事能力は別物。採用後にミスマッチが起きる。",
+                  },
+                  {
+                    icon: (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                        <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+                      </svg>
+                    ),
+                    color: "from-rose-500 to-rose-700",
+                    title: "受ける側も嫌い",
+                    desc: "意味を感じられないテストに優秀な候補者ほど嫌気がさしている。",
+                  },
                 ].map((item) => (
                   <div key={item.title} className="bg-slate-600/60 rounded-2xl p-5">
-                    <p className="text-2xl mb-3">{item.icon}</p>
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-4`}>
+                      {item.icon}
+                    </div>
                     <p className="font-bold text-sm mb-2">{item.title}</p>
                     <p className="text-xs text-slate-400 leading-relaxed">{item.desc}</p>
                   </div>
