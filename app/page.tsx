@@ -436,6 +436,8 @@ AIの拡大など急激に増加してるデータを管理するインフラで
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           aiRole: simConfig.aiRole,
+          firstMsg: simConfig.firstMsg,
+          messages: newMessages,
           chatLogs: newLogs,
           rallyCount: newCount,
         }),
