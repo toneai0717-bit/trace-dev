@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { track } from "@vercel/analytics";
 import { Radar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -363,7 +364,13 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   const [showContext, setShowContext] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
+  const [toast, setToast] = useState("");
   const chatRef = useRef<HTMLDivElement>(null);
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(""), 4000);
+  }
 
   useEffect(() => {
     if (chatRef.current) {
@@ -376,29 +383,36 @@ AIの拡大など急激に増加してるデータを管理するインフラで
     setLoading(true);
     setLoadingMsg("シナリオを生成中...");
     setError("");
+    try {
+      const res = await fetch("/api/init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jd }),
+      });
+      const data = await res.json();
 
-    const res = await fetch("/api/init", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jd }),
-    });
-    const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "シナリオ生成に失敗しました");
+        setLoading(false);
+        return;
+      }
 
-    if (!res.ok) {
-      setError(data.error);
+      track("simulation_started");
+      setSimConfig(data);
+      setMessages([{ role: "ai", text: data.firstMsg }]);
+      setScreen("sim");
       setLoading(false);
-      return;
+    } catch (e) {
+      showToast("通信エラーが発生しました。もう一度お試しください。");
+      setLoading(false);
     }
-
-    setSimConfig(data);
-    setMessages([{ role: "ai", text: data.firstMsg }]);
-    setScreen("sim");
-    setLoading(false);
   }
 
   async function processRally() {
     if (!action.trim() || !intent.trim() || !simConfig) return;
 
+    const savedAction = action;
+    const savedIntent = intent;
     const newLog = { action, intent };
     const newLogs = [...chatLogs, newLog];
     const newMessages = [
@@ -416,55 +430,69 @@ AIの拡大など急激に増加してるデータを管理するインフラで
     setLoading(true);
     setLoadingMsg("相手が返信を作成中...");
 
-    const res = await fetch("/api/rally", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        aiRole: simConfig.aiRole,
-        chatLogs: newLogs,
-        rallyCount: newCount,
-      }),
-    });
-    const data = await res.json();
+    try {
+      const res = await fetch("/api/rally", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          aiRole: simConfig.aiRole,
+          chatLogs: newLogs,
+          rallyCount: newCount,
+        }),
+      });
+      const data = await res.json();
 
-    if (!res.ok) {
-      setError(data.error);
-      setLoading(false);
-      return;
-    }
+      if (!res.ok) {
+        setError(data.error ?? "返信の取得に失敗しました");
+        setAction(savedAction);
+        setIntent(savedIntent);
+        setLoading(false);
+        return;
+      }
 
-    setMessages([...newMessages, { role: "ai", text: data.reply }]);
+      setMessages([...newMessages, { role: "ai", text: data.reply }]);
 
-    if (data.shouldFinish || newCount >= 6) {
-      await finishSimulation(newLogs);
-    } else {
+      if (data.shouldFinish || newCount >= 6) {
+        await finishSimulation(newLogs);
+      } else {
+        setLoading(false);
+      }
+    } catch (e) {
+      showToast("通信エラーが発生しました。もう一度お試しください。");
+      setAction(savedAction);
+      setIntent(savedIntent);
       setLoading(false);
     }
   }
 
   async function finishSimulation(logs: ChatLog[]) {
     setLoadingMsg("評価レポートを生成中...");
+    try {
+      const res = await fetch("/api/finish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chatLogs: logs,
+          targetPersona: simConfig?.targetPersona ?? "",
+          scoreLabels: simConfig?.scoreLabels ?? [],
+        }),
+      });
+      const data = await res.json();
 
-    const res = await fetch("/api/finish", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chatLogs: logs,
-        targetPersona: simConfig?.targetPersona ?? "",
-        scoreLabels: simConfig?.scoreLabels ?? [],
-      }),
-    });
-    const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "評価レポートの生成に失敗しました");
+        setLoading(false);
+        return;
+      }
 
-    if (!res.ok) {
-      setError(data.error);
+      track("simulation_completed");
+      setAnalysis(data);
+      setScreen("result");
       setLoading(false);
-      return;
+    } catch (e) {
+      showToast("通信エラーが発生しました。もう一度お試しください。");
+      setLoading(false);
     }
-
-    setAnalysis(data);
-    setScreen("result");
-    setLoading(false);
   }
 
   function downloadPDF() {
@@ -527,6 +555,13 @@ AIの拡大など急激に増加してるデータを管理するインフラで
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center z-50">
           <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin mb-4" />
           <p className="text-white font-semibold">{loadingMsg}</p>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-lg text-sm font-medium z-50">
+          {toast}
         </div>
       )}
 

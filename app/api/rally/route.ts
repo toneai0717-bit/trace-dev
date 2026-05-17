@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { withRetry } from "../_retry";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -12,7 +13,7 @@ export async function POST(req: NextRequest) {
       content: l.action,
     }));
 
-    const message = await client.messages.create({
+    const message = await withRetry(() => client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 1024,
       system: `あなたは「${aiRole}」です。
@@ -27,7 +28,7 @@ ${rallyCount >= 3 ? "十分なデータが取れたと判断した場合は SHOU
 <REPLY>ビジネスメール本文</REPLY>
 <SHOULD_FINISH>yes または no</SHOULD_FINISH>`,
       messages: history,
-    });
+    }));
 
     const text =
       message.content[0].type === "text" ? message.content[0].text : "";

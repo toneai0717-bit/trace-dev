@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { withRetry } from "../_retry";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest) {
 
     const scoreItems = labels.map((label, i) => `${i + 1}. ${label}`).join("\n");
 
-    const message = await client.messages.create({
+    const message = await withRetry(() => client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 4096,
       system: `あなたは採用評価の専門家です。ビジネス交渉シミュレーションのログを分析し、候補者を評価してください。
@@ -40,7 +41,7 @@ ${scoreItems}
           content: `交渉ログ：\n${JSON.stringify(chatLogs, null, 2)}`,
         },
       ],
-    });
+    }));
 
     const text =
       message.content[0].type === "text" ? message.content[0].text : "";

@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { withRetry } from "../_retry";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -7,7 +8,7 @@ export async function POST(req: NextRequest) {
   try {
     const { jd } = await req.json();
 
-    const message = await client.messages.create({
+    const message = await withRetry(() => client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 4096,
       messages: [
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
 <SCORE_LABELS>このJDの職種・人物像に合わせて候補者評価に最も重要な能力軸を3〜7個、カンマ区切りで列挙。軸名は5文字以内の日本語で（例：傾聴力,課題構造化力,信頼構築力,提案力,調整力）</SCORE_LABELS>`,
         },
       ],
-    });
+    }));
 
     const text =
       message.content[0].type === "text" ? message.content[0].text : "";
