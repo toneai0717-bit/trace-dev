@@ -824,14 +824,42 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       {screen === "result" && analysis && (
         <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
 
-          {/* ① 採用推奨度 → 一番でかく最初に */}
-          <div className={`rounded-2xl border-2 p-8 text-center ${RECOMMENDATION_COLOR[getRecommendationKey(analysis.hiring_recommendation)]}`}>
-            <p className="text-xs font-bold uppercase tracking-widest mb-2 opacity-60">採用推奨度</p>
-            <p className="text-4xl font-black mb-4">{getRecommendationKey(analysis.hiring_recommendation)}</p>
+          {/* ① スコア → 結果を一発で把握 */}
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-5 text-center">評価スコア</p>
+            <div className="flex flex-col md:flex-row gap-6 items-center">
+              <div className="w-56 flex-shrink-0">
+                {radarData && (
+                  <Radar data={radarData} options={{
+                    scales: { r: { min: 0, max: 10, ticks: { display: false }, grid: { color: "#e2e8f0" }, pointLabels: { font: { size: 9 }, color: "#64748b" } } },
+                    plugins: { legend: { display: false } },
+                  }} />
+                )}
+              </div>
+              <div className="flex-1 w-full space-y-3">
+                {scoreLabels.map((label, i) => (
+                  <div key={label} className="flex items-center gap-3 text-sm">
+                    <span className="text-slate-500 w-24 flex-shrink-0">{label}</span>
+                    <div className="flex items-center gap-2 flex-1">
+                      <div className="flex-1 bg-slate-100 rounded-full h-2">
+                        <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${(analysis.scores[i] / 10) * 100}%` }} />
+                      </div>
+                      <span className="font-black text-slate-700 w-5 text-right">{analysis.scores[i]}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ② 採用推奨度 → スコアを見た上で判定 */}
+          <div className={`rounded-2xl border-2 p-6 text-center ${RECOMMENDATION_COLOR[getRecommendationKey(analysis.hiring_recommendation)]}`}>
+            <p className="text-xs font-bold uppercase tracking-widest mb-1 opacity-60">採用推奨度</p>
+            <p className="text-4xl font-black mb-3">{getRecommendationKey(analysis.hiring_recommendation)}</p>
             <p className="text-sm leading-relaxed">{analysis.overall}</p>
           </div>
 
-          {/* ② 活躍シナリオ・懸念点 → 採用後に何が起きるか */}
+          {/* ③ 活躍シナリオ・懸念点 → なぜその推奨度か */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-5">
               <p className="text-xs font-bold text-emerald-600 mb-2">🚀 入社後の活躍シナリオ</p>
@@ -843,7 +871,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             </div>
           </div>
 
-          {/* ③ 面接で確認すべき質問 */}
+          {/* ④ 面接で確認すべき質問 */}
           {analysis.interview_questions && (
             <div className="bg-violet-50 rounded-2xl border border-violet-100 p-5">
               <p className="text-xs font-bold text-violet-600 mb-3">🎤 面接で確認すべき質問</p>
@@ -865,35 +893,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             </div>
           )}
 
-          {/* ④ スコア → コンパクトに */}
-          <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">5軸スコア</p>
-            <div className="flex gap-6 items-center">
-              <div className="w-40 flex-shrink-0">
-                {radarData && (
-                  <Radar data={radarData} options={{
-                    scales: { r: { min: 0, max: 10, ticks: { display: false }, grid: { color: "#e2e8f0" }, pointLabels: { font: { size: 10 } } } },
-                    plugins: { legend: { display: false } },
-                  }} />
-                )}
-              </div>
-              <div className="flex-1 space-y-2">
-                {scoreLabels.map((label, i) => (
-                  <div key={label} className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500 w-20">{label}</span>
-                    <div className="flex items-center gap-2 flex-1">
-                      <div className="flex-1 bg-slate-100 rounded-full h-1.5">
-                        <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${(analysis.scores[i] / 10) * 100}%` }} />
-                      </div>
-                      <span className="font-bold text-slate-700 w-4 text-right">{analysis.scores[i]}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* ④ 詳細レポート → 折りたたみ */}
+          {/* ⑤ 詳細レポート → 折りたたみ */}
           <button
             onClick={() => setShowDetail(!showDetail)}
             className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl py-3 text-sm font-medium transition-colors"
@@ -924,7 +924,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             </div>
           )}
 
-          {/* ⑤ アクション */}
+          {/* ⑥ アクション */}
           <div className="flex gap-3 print:hidden">
             <button onClick={downloadPDF} className="flex-1 bg-slate-900 text-white rounded-xl py-3 font-semibold hover:bg-slate-700 transition-colors text-sm">
               📄 PDFで保存
