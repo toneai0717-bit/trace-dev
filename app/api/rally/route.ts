@@ -24,6 +24,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // 空の場合は直近のユーザーアクションだけ入れてフォールバック
+    if (claudeMessages.length === 0) {
+      const lastAction = chatLogs[chatLogs.length - 1]?.action ?? "";
+      claudeMessages.push({ role: "user", content: lastAction });
+    }
+
     const message = await withRetry(() => client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 1024,
@@ -62,7 +68,8 @@ ${rallyCount >= 3 ? "- 十分な交渉が行われたと判断できる場合は
       return match ? match[1].trim() : "";
     };
 
-    const reply = extract("REPLY");
+    // タグが取れなかった場合はテキスト全体をフォールバックとして使う
+    const reply = extract("REPLY") || text.replace(/<SHOULD_FINISH>.*?<\/SHOULD_FINISH>/s, "").trim();
     const shouldFinish = extract("SHOULD_FINISH") === "yes";
 
     if (!reply) throw new Error("返信の生成に失敗しました");
