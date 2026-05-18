@@ -591,7 +591,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
           <div className="flex flex-col items-center justify-center text-center px-6 py-24">
             <p className="text-xs tracking-widest text-blue-400 uppercase mb-4">Next Generation Hiring</p>
             <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight text-center w-full">
-              SPIでは測れない、<br />
+              <span className="block pl-10">SPIでは測れない、</span>
               <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
                 本物の仕事力
               </span>
