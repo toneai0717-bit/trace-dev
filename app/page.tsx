@@ -613,7 +613,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
           <div className="bg-slate-800 px-6 py-16">
             <div className="max-w-3xl mx-auto">
               <p className="text-center text-xs tracking-widest text-slate-400 uppercase mb-8">The Problem</p>
-              <h2 className="text-2xl font-bold text-center mb-10">SPIでは、本物の仕事力を見抜けない。</h2>
+              <h2 className="text-2xl font-bold text-center mb-10">SPIでは、本物の仕事力を測れない。</h2>
               <div className="grid md:grid-cols-3 gap-4">
                 {[
                   {
