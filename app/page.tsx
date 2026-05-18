@@ -656,6 +656,14 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             </div>
           </div>
 
+          {/* 答え */}
+          <div className="bg-slate-900 px-6 py-24 text-center">
+            <p className="text-slate-500 text-base mb-8">じゃあ、どうやって仕事の能力を測るのか。</p>
+            <p className="text-white font-black text-3xl md:text-5xl leading-tight">
+              仕事の能力は、<br />仕事で測ればいい。
+            </p>
+          </div>
+
           {/* TRACEの仕組み */}
           <div className="px-6 py-16">
             <div className="max-w-3xl mx-auto">
