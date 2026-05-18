@@ -663,7 +663,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
           <div className="px-6 py-16 bg-slate-800 border-t-2 border-blue-500/30">
             <div className="max-w-3xl mx-auto">
               <p className="text-center text-xs tracking-widest text-blue-400 uppercase mb-8">How it works</p>
-              <h2 className="text-2xl font-bold text-center mb-10">3ステップで、採用精度が上がる。</h2>
+              <h2 className="text-2xl font-bold text-center mb-10">3ステップで採用精度が上がる。</h2>
               <div className="space-y-4">
                 {[
                   { step: "01", title: "求人票を貼るだけ", desc: "求人票をペーストすると、AIがその職種に合わせたリアルな業務シナリオを自動生成。営業なら商談、企画なら提案交渉など、仕事の現場そのままのシナリオが作られる。" },
