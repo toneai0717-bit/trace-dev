@@ -614,7 +614,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             <div className="max-w-3xl mx-auto">
               <p className="text-center text-xs tracking-widest text-slate-400 uppercase mb-8">The Problem</p>
               <h2 className="text-2xl font-bold text-center mb-10">SPIでは、本物の仕事力を測れない。</h2>
-              <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+              <div className="grid md:grid-cols-3 gap-4">
                 {[
                   {
                     icon: (
@@ -633,6 +633,15 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                     ),
                     title: "業務と無関係",
                     desc: "言語・非言語の問題と、実際の仕事能力は別物。採用後にミスマッチが起きる。",
+                  },
+                  {
+                    icon: (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                      </svg>
+                    ),
+                    title: "高得点でも活躍しない",
+                    desc: "SPIで上位でも、実務で使い物にならないケースが頻発する。テストの点数と仕事の成果が連動していない。",
                   },
                 ].map((item) => (
                   <div key={item.title} className="bg-slate-600/60 rounded-2xl p-5">
