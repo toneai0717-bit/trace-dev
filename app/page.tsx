@@ -651,8 +651,11 @@ AIの拡大など急激に増加してるデータを管理するインフラで
           <div className="bg-slate-900 px-6 py-24 text-center border-t-2 border-blue-500/30">
             <p className="text-xs tracking-widest text-blue-400 uppercase mb-6">The Answer</p>
             <p className="text-slate-300 text-base mb-10">ではどうやって仕事の能力を測るのか。</p>
-            <p className="text-white font-black text-3xl md:text-5xl leading-tight">
+            <p className="text-white font-black text-3xl md:text-5xl leading-tight mb-14">
               仕事の能力は、<br />仕事で測ればいい。
+            </p>
+            <p className="text-slate-300 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
+              TRACEは、求人票から実際の業務シナリオを生成し、<br />候補者に対応させる。それがそのまま評価になる。
             </p>
           </div>
 
