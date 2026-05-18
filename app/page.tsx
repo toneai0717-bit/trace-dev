@@ -684,7 +684,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 
           {/* CTA */}
           <div className="bg-slate-800 px-6 py-16 text-center">
-            <h2 className="text-2xl font-bold mb-4">まず、お試しを。</h2>
+            <h2 className="text-2xl font-bold mb-4">まず、お試しください。</h2>
             <p className="text-slate-400 text-sm mb-8">求人票があれば、今すぐ無料で体験できます。</p>
             <button
               onClick={() => setScreen("setup")}
