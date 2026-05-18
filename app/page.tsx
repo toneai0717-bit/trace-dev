@@ -618,20 +618,20 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                   {
                     icon: (
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-                        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                      </svg>
-                    ),
-                    title: "対策で突破できる",
-                    desc: "SPIは暗記と練習で点数が上がる。本来の能力を測れていない。",
-                  },
-                  {
-                    icon: (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
                         <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="9" y1="12" x2="15" y2="12"/>
                       </svg>
                     ),
                     title: "業務と無関係",
                     desc: "言語・非言語の問題と、実際の仕事能力は別物。採用後にミスマッチが起きる。",
+                  },
+                  {
+                    icon: (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                      </svg>
+                    ),
+                    title: "対策で突破できる",
+                    desc: "SPIは暗記と練習で点数が上がる。本来の能力を測れていない。",
                   },
                   {
                     icon: (
