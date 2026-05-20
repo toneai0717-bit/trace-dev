@@ -24,12 +24,13 @@ export async function POST(req: NextRequest) {
 【評価項目（各10点満点）】
 ${scoreItems}
 
-【重要】各ログには「action（実際に送ったメッセージ）」と「intent（その裏にあった狙い・戦略）」の両方が含まれています。
+【重要】各ログには「行動（実際に送ったメッセージ）」と「意図（その裏にあった狙い・戦略）」の両方が含まれています。
 評価では以下の2軸を必ず区別してください：
-- 表面的な行動（action）だけでなく、思考・戦略（intent）の質も評価する
-- intentが優れていてもactionで伝わっていなければ「実行力不足」として指摘する
-- intentが浅くてもactionが効果的な場合は「直感型」として特記する
-- intentとactionのギャップこそがTRACEの核心的な評価ポイント
+- 表面的な行動だけでなく、思考・戦略（意図）の質も評価する
+- 意図が優れていても行動で伝わっていなければ「実行力不足」として指摘する
+- 意図が浅くても行動が効果的な場合は「直感型」として特記する
+- 意図と行動のギャップこそがTRACEの核心的な評価ポイント
+- 評価文中では「action」「intent」という英語を使わず、必ず「行動」「意図」と書くこと
 
 以下のタグで出力してください（各フィールドは簡潔に）：
 <SCORES>評価項目の順番通りにスコアをカンマ区切りで（例：${labels.map(() => "数値").join(",")}）</SCORES>
@@ -37,15 +38,15 @@ ${scoreItems}
 <HIRING_RECOMMENDATION>強く推奨／推奨／要検討／非推奨 とその理由（1文）</HIRING_RECOMMENDATION>
 <ONBOARDING_SCENARIO>入社後にこの候補者が真価を発揮しそうな具体的な場面・シナリオ（2〜3文）</ONBOARDING_SCENARIO>
 <RISK_POINTS>採用した場合の懸念点とフォローアップすべきポイント（2〜3文）</RISK_POINTS>
-<INTERVIEW_QUESTIONS>各ラリーのintentとactionのギャップをもとに、面接で深掘りすべき質問を3〜5個、番号付きで列挙する。「第Nラリーで〜と考えていたようですが、実際の行動では〜でした。なぜそのような判断をしましたか？」のように、思考と行動のズレを直接突く質問にすること。</INTERVIEW_QUESTIONS>
-<PERSONALITY>人物像との合致度分析（intentの傾向から読み取れる思考スタイルも含めて、2文）</PERSONALITY>
-<CRITICAL_POINT>この交渉の最大の山場と、プレイヤーのintent・actionの対応（1文）</CRITICAL_POINT>
-<BEST_APPROACH>理想的な思考・行動の具体例（intentとactionの両面で、2文）</BEST_APPROACH>
-<DETAIL>各ラリーの詳細フィードバック（action評価とintent評価を分けて記載）</DETAIL>`,
+<INTERVIEW_QUESTIONS>各ラリーの意図と行動のギャップをもとに、面接で深掘りすべき質問を3〜5個、番号付きで列挙する。「第Nラリーで〜と考えていたようですが、実際の行動では〜でした。なぜそのような判断をしましたか？」のように、思考と行動のズレを直接突く質問にすること。</INTERVIEW_QUESTIONS>
+<PERSONALITY>人物像との合致度分析（意図の傾向から読み取れる思考スタイルも含めて、2文）</PERSONALITY>
+<CRITICAL_POINT>この交渉の最大の山場と、プレイヤーの意図・行動の対応（1文）</CRITICAL_POINT>
+<BEST_APPROACH>理想的な思考・行動の具体例（意図と行動の両面で、2文）</BEST_APPROACH>
+<DETAIL>各ラリーの詳細フィードバック（行動評価と意図評価を分けて記載）</DETAIL>`,
       messages: [
         {
           role: "user",
-          content: `交渉ログ（各ラリーのaction=実際の行動、intent=裏の意図・戦略）：\n${JSON.stringify(chatLogs, null, 2)}`,
+          content: `交渉ログ（各ラリーの「行動」=実際に送ったメッセージ、「意図」=裏の狙い・戦略）：\n${JSON.stringify(chatLogs, null, 2)}`,
         },
       ],
     }));
