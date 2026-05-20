@@ -366,6 +366,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const [heroStep, setHeroStep] = useState(0);
+  const [suggesting, setSuggesting] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -946,32 +947,34 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
               <div className="flex justify-end mb-2">
                 <button
-                  onClick={() => {
-                    const samples = [
-                      {
-                        action: "まずは現状を確認させてください。現在どのような課題が一番大きいと感じていますか？",
-                        intent: "相手の本音を引き出す。こちらから解決策を押し付けず、相手自身に課題を言語化させる。",
-                      },
-                      {
-                        action: "おっしゃる点はよく理解できます。その課題が解決された場合、どのような状態が理想ですか？",
-                        intent: "現状の不満から理想像に話をシフトさせ、相手が求めるゴールを明確にする。",
-                      },
-                      {
-                        action: "ご要望を踏まえると、段階的に進める方法が現実的だと思います。まず小さく始めて効果を確認する形はいかがでしょうか。",
-                        intent: "相手のリスク感を下げるために、大きな決断を求めず小さな合意から積み上げる戦略をとる。",
-                      },
-                      {
-                        action: "今回の交渉を通じて、お互いにとってベストな着地点を見つけたいと思っています。最終的に何を最優先にお考えですか？",
-                        intent: "クロージングに向けて相手の優先順位を再確認し、合意形成の道筋を作る。",
-                      },
-                    ];
-                    const sample = samples[Math.min(rallyCount, samples.length - 1)];
-                    setAction(sample.action);
-                    setIntent(sample.intent);
+                  onClick={async () => {
+                    if (suggesting || !simConfig) return;
+                    setSuggesting(true);
+                    try {
+                      const lastAiMsg = [...messages].reverse().find(m => m.role === "ai")?.text ?? "";
+                      const res = await fetch("/api/suggest", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          aiRole: simConfig.aiRole,
+                          lastAiMessage: lastAiMsg,
+                          rallyCount,
+                          context: simConfig.context,
+                        }),
+                      });
+                      const data = await res.json();
+                      if (data.action) setAction(data.action);
+                      if (data.intent) setIntent(data.intent);
+                    } catch {
+                      showToast("サンプル生成に失敗しました");
+                    } finally {
+                      setSuggesting(false);
+                    }
                   }}
-                  className="text-xs text-slate-400 hover:text-blue-500 border border-slate-200 hover:border-blue-300 rounded-lg px-3 py-1.5 transition-colors"
+                  disabled={suggesting}
+                  className="text-xs text-slate-400 hover:text-blue-500 border border-slate-200 hover:border-blue-300 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
                 >
-                  💡 サンプル入力
+                  {suggesting ? "生成中..." : "💡 AI提案"}
                 </button>
               </div>
               <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-3">
