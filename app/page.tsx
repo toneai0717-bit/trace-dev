@@ -598,39 +598,24 @@ AIの拡大など急激に増加してるデータを管理するインフラで
         <div className="min-h-[calc(100vh-44px)] bg-slate-900 text-white">
 
           {/* Hero */}
-          <div className="flex flex-col md:flex-row items-center gap-8 px-8 md:px-16 py-16 md:py-20 max-w-7xl mx-auto w-full">
-            {/* Left: Text */}
-            <div className="flex-1 min-w-0">
-              <p className="text-xs tracking-widest text-blue-400 uppercase mb-4">Next Generation Hiring</p>
-              <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
-                <span className="block whitespace-nowrap">SPIでは測れない、</span>
-                <span className="block whitespace-nowrap">
-                  <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">本物の仕事力</span>を見抜く。
-                </span>
-              </h1>
-              <p className="text-slate-400 text-base md:text-lg max-w-md leading-relaxed mb-10">
-                求人票を貼るだけで、AIがリアルな業務シナリオを生成。<br />
-                候補者が実際にどう動くかを、採用前に確かめる。
-              </p>
-              <button
-                onClick={() => setScreen("setup")}
-                className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-10 py-4 rounded-2xl text-sm transition-colors"
-              >
-                無料で試す →
-              </button>
-            </div>
-
-            {/* Right: Loom demo video */}
-            <div className="w-full md:w-[520px] flex-shrink-0">
-              <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-700" style={{ position: "relative", paddingBottom: "42.708333333333336%", height: 0 }}>
-                <iframe
-                  src="https://www.loom.com/embed/e6bf4dc9893a4418bba02ef642a72750?hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true"
-                  frameBorder="0"
-                  allowFullScreen
-                  style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
-                />
-              </div>
-            </div>
+          <div className="flex flex-col items-center text-center px-8 md:px-16 py-20 md:py-28 max-w-4xl mx-auto w-full">
+            <p className="text-xs tracking-widest text-blue-400 uppercase mb-4">Next Generation Hiring</p>
+            <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
+              <span className="block">SPIでは測れない、</span>
+              <span className="block">
+                <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">本物の仕事力</span>を見抜く。
+              </span>
+            </h1>
+            <p className="text-slate-400 text-base md:text-lg max-w-xl leading-relaxed mb-10">
+              求人票を貼るだけで、AIがリアルな業務シナリオを生成。<br />
+              候補者が実際にどう動くかを、採用前に確かめる。
+            </p>
+            <button
+              onClick={() => setScreen("setup")}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-12 py-4 rounded-2xl text-sm transition-colors"
+            >
+              無料で試す →
+            </button>
           </div>
 
           {/* SPIの問題点 */}
