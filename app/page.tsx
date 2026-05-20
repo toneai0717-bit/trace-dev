@@ -619,44 +619,111 @@ AIの拡大など急激に増加してるデータを管理するインフラで
               </button>
             </div>
 
-            {/* Right: Mock result screen */}
-            <div className="w-full md:w-[420px] flex-shrink-0">
-              <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl rotate-1 hover:rotate-0 transition-transform duration-500">
+            {/* Right: Animated demo */}
+            <div className="w-full md:w-[440px] flex-shrink-0">
+              <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
+                {/* Window bar */}
                 <div className="bg-slate-900 px-4 py-2.5 flex items-center gap-2 border-b border-slate-700">
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
                   <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
-                  <span className="text-xs text-slate-500 ml-2 font-medium">TRACE — 評価レポート</span>
-                </div>
-                <div className="p-5">
-                  {/* スコア */}
-                  <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-3">評価スコア</p>
-                  <div className="space-y-2.5 mb-4">
-                    {[
-                      { label: "論理思考力", score: 8 },
-                      { label: "交渉力", score: 7 },
-                      { label: "状況適応力", score: 9 },
-                      { label: "主体性", score: 6 },
-                      { label: "ストレス耐性", score: 8 },
-                    ].map((item) => (
-                      <div key={item.label} className="flex items-center gap-3">
-                        <span className="text-xs text-slate-400 w-20 flex-shrink-0">{item.label}</span>
-                        <div className="flex-1 bg-slate-700 rounded-full h-2">
-                          <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${item.score * 10}%` }} />
-                        </div>
-                        <span className="text-sm font-black text-white w-4 text-right">{item.score}</span>
-                      </div>
+                  <span className="text-xs text-slate-500 ml-2">
+                    {heroStep === 0 && "TRACE — 求人票を入力"}
+                    {heroStep === 1 && "TRACE — シナリオ生成中..."}
+                    {heroStep === 2 && "TRACE — シミュレーション中"}
+                    {heroStep === 3 && "TRACE — 評価レポート"}
+                  </span>
+                  {/* Progress bar */}
+                  <div className="ml-auto flex gap-1">
+                    {[0,1,2,3].map(i => (
+                      <div key={i} className={`h-1 rounded-full transition-all duration-300 ${heroStep === i ? "w-6 bg-blue-400" : "w-2 bg-slate-600"}`} />
                     ))}
                   </div>
-                  {/* 採用推奨度 */}
-                  <div className="bg-emerald-900/40 rounded-xl px-4 py-3 border border-emerald-500/30 text-center mb-3">
-                    <p className="text-xs text-emerald-400 mb-0.5">採用推奨度</p>
-                    <p className="text-xl font-black text-emerald-300">強く推奨</p>
+                </div>
+
+                <div className="relative h-[320px] overflow-hidden">
+                  {/* Step 0: 求人票入力 */}
+                  <div className={`absolute inset-0 p-4 transition-opacity duration-300 ${heroStep === 0 ? "opacity-100" : "opacity-0"}`}>
+                    <p className="text-xs text-slate-500 mb-2">求人票（JD）を貼り付ける</p>
+                    <div className="bg-slate-900/60 rounded-xl p-3 h-52 overflow-hidden border border-slate-600">
+                      <p className="text-xs text-slate-400 leading-relaxed">
+                        【職種】購買・調達<br/>
+                        【ミッション】サプライヤーとの価格・納期・品質条件を交渉し、最適な調達を実現する。<br/><br/>
+                        【業務内容】<br/>
+                        ・部品・原材料の調達先選定と価格交渉<br/>
+                        ・納期短縮・コスト削減・品質改善の同時交渉<br/>
+                        ・長期契約条件の交渉と合意<br/><br/>
+                        【求める人物像】<br/>
+                        ・コスト・納期・品質の3軸を同時にマネジメントできる方<br/>
+                        ・データに基づいた論理的な交渉ができる方
+                      </p>
+                    </div>
+                    <button className="mt-3 w-full bg-blue-600 text-white rounded-xl py-2 text-xs font-bold">シミュレーションを開始する</button>
                   </div>
-                  {/* 面接質問 */}
-                  <div className="bg-violet-900/30 rounded-xl p-3 border border-violet-500/20">
-                    <p className="text-xs text-violet-400 font-bold mb-1.5">🎤 面接で確認すべき質問</p>
-                    <p className="text-xs text-slate-400 leading-relaxed">第2ラリーで価格の数値根拠を提示せず関係性の話に切り替えた場面について、なぜその判断をしたのか教えてください。</p>
+
+                  {/* Step 1: ローディング */}
+                  <div className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-300 ${heroStep === 1 ? "opacity-100" : "opacity-0"}`}>
+                    <div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-400 rounded-full animate-spin mb-4" />
+                    <p className="text-white font-bold text-sm">シナリオを生成中...</p>
+                    <p className="text-slate-500 text-xs mt-2">求人票からリアルな業務シナリオを作成しています</p>
+                    <div className="mt-6 bg-slate-700/50 rounded-xl p-3 w-64 text-center">
+                      <p className="text-xs text-blue-400 font-bold">バッテリー部材 納期・価格交渉</p>
+                      <p className="text-xs text-slate-500 mt-1">シナリオ生成完了 ✓</p>
+                    </div>
+                  </div>
+
+                  {/* Step 2: 対話 */}
+                  <div className={`absolute inset-0 p-4 transition-opacity duration-300 ${heroStep === 2 ? "opacity-100" : "opacity-0"}`}>
+                    <div className="space-y-2 mb-3">
+                      <div className="flex justify-start">
+                        <div className="bg-slate-700 rounded-2xl rounded-tl-sm px-3 py-2 max-w-[80%]">
+                          <p className="text-xs text-slate-300">お世話になっております。増産のご要望の件ですが、現状の生産ラインに制約がありまして...</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-end">
+                        <div className="bg-blue-600 rounded-2xl rounded-tr-sm px-3 py-2 max-w-[80%]">
+                          <p className="text-xs text-white">まず御社の生産能力の現状を確認させてください。どの部分がボトルネックになっていますか？</p>
+                          <p className="text-xs text-blue-200 mt-1 italic">戦略: 相手の制約を把握してから交渉を進める</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-start">
+                        <div className="bg-slate-700 rounded-2xl rounded-tl-sm px-3 py-2 max-w-[80%]">
+                          <p className="text-xs text-slate-300">設備の稼働率が95%で、これ以上の増産は設備投資が必要な状況です...</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-slate-900/60 rounded-xl p-2 border border-slate-600">
+                      <p className="text-xs text-slate-500">Rally 2 / 最大6</p>
+                    </div>
+                  </div>
+
+                  {/* Step 3: 結果 */}
+                  <div className={`absolute inset-0 p-4 transition-opacity duration-300 ${heroStep === 3 ? "opacity-100" : "opacity-0"}`}>
+                    <div className="space-y-1.5 mb-3">
+                      {[
+                        { label: "論理思考力", score: 8 },
+                        { label: "交渉力", score: 7 },
+                        { label: "状況適応力", score: 9 },
+                        { label: "主体性", score: 6 },
+                        { label: "ストレス耐性", score: 8 },
+                      ].map((item) => (
+                        <div key={item.label} className="flex items-center gap-2">
+                          <span className="text-xs text-slate-400 w-20 flex-shrink-0">{item.label}</span>
+                          <div className="flex-1 bg-slate-700 rounded-full h-2">
+                            <div className="bg-blue-500 h-2 rounded-full transition-all duration-1000" style={{ width: heroStep === 3 ? `${item.score * 10}%` : "0%" }} />
+                          </div>
+                          <span className="text-xs font-black text-white w-4 text-right">{item.score}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bg-emerald-900/40 rounded-xl px-3 py-2 border border-emerald-500/30 text-center mb-2">
+                      <p className="text-xs text-emerald-400">採用推奨度</p>
+                      <p className="text-lg font-black text-emerald-300">強く推奨</p>
+                    </div>
+                    <div className="bg-violet-900/30 rounded-xl p-2.5 border border-violet-500/20">
+                      <p className="text-xs text-violet-400 font-bold mb-1">🎤 面接で確認すべき質問</p>
+                      <p className="text-xs text-slate-400 leading-relaxed">第2ラリーで関係性の話に切り替えた判断について、なぜその選択をしたのか教えてください。</p>
+                    </div>
                   </div>
                 </div>
               </div>
