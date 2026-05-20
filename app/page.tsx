@@ -371,7 +371,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   useEffect(() => {
     if (screen !== "top") return;
     const timer = setInterval(() => {
-      setHeroStep((prev) => (prev + 1) % 3);
+      setHeroStep((prev) => (prev + 1) % 4);
     }, 3000);
     return () => clearInterval(timer);
   }, [screen]);
