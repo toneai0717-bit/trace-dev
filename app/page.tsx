@@ -641,7 +641,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             <div className="absolute inset-y-0 right-0 w-[580px] bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent pointer-events-none hidden md:block" />
 
             {/* Text content */}
-            <div className="relative z-10 px-6 py-20 md:py-24 max-w-2xl">
+            <div className="relative z-10 px-8 md:px-16 py-20 md:py-24 max-w-2xl">
               <p className="text-xs tracking-widest text-blue-400 uppercase mb-4">Next Generation Hiring</p>
               <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
                 <span className="block whitespace-nowrap">SPIでは測れない、</span>
