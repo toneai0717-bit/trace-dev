@@ -944,6 +944,17 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 
             {/* Input area */}
             <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+              <div className="flex justify-end mb-2">
+                <button
+                  onClick={() => {
+                    setAction("状況を整理させてください。現在の課題と、解決に向けて最も重要だと思われるポイントを教えていただけますか？");
+                    setIntent("相手の本音と優先課題を引き出す。こちらから答えを押し付けず、相手が自分で課題を言語化できる場を作る。");
+                  }}
+                  className="text-xs text-slate-400 hover:text-blue-500 border border-slate-200 hover:border-blue-300 rounded-lg px-3 py-1.5 transition-colors"
+                >
+                  💡 サンプル入力
+                </button>
+              </div>
               <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-3">
                 <div className="flex-1">
                   <label className="block text-xs font-bold text-slate-400 mb-1">返信内容（アクション）</label>

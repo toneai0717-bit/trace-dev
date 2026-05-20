@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 - 500文字以内で簡潔かつリアルに
 - 前回までの自分の発言と一貫性を保つ
 - 相手の意図を読んだ上で戦略的に応答する
-${rallyCount >= 3 ? "- 十分な交渉が行われたと判断できる場合は SHOULD_FINISH を yes にしてください。" : "- まだ交渉の途中なので SHOULD_FINISH は no にしてください。"}
+${rallyCount >= 4 ? "- 十分な交渉が行われたと判断できる場合は SHOULD_FINISH を yes にしてください。" : "- まだ交渉の序盤〜中盤なので SHOULD_FINISH は必ず no にしてください。"}
 
 以下のタグで返してください：
 <REPLY>ビジネスメール本文</REPLY>
