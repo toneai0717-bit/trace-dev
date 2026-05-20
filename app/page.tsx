@@ -597,9 +597,51 @@ AIの拡大など急激に増加してるデータを管理するインフラで
         <div className="min-h-[calc(100vh-44px)] bg-slate-900 text-white">
 
           {/* Hero */}
-          <div className="flex flex-col md:flex-row items-center justify-center gap-10 px-6 py-20 max-w-6xl mx-auto">
-            {/* Left: Text */}
-            <div className="flex-1 text-center md:text-left">
+          <div className="relative overflow-hidden min-h-[540px] flex items-center">
+            {/* Mock screen: big background right side */}
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[520px] opacity-30 pointer-events-none select-none hidden md:block">
+              <div className="relative bg-slate-800 rounded-2xl border border-slate-600 overflow-hidden shadow-2xl">
+                <div className="bg-slate-900 px-4 py-2 flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
+                  <span className="text-xs text-slate-500 ml-2">TRACE — 評価レポート</span>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-3 mb-5">
+                    {[
+                      { label: "論理思考力", score: 8 },
+                      { label: "交渉力", score: 7 },
+                      { label: "状況適応力", score: 9 },
+                      { label: "主体性", score: 6 },
+                      { label: "ストレス耐性", score: 8 },
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-center gap-3">
+                        <span className="text-sm text-slate-300 w-24 flex-shrink-0">{item.label}</span>
+                        <div className="flex-1 bg-slate-700 rounded-full h-3">
+                          <div className="bg-blue-500 h-3 rounded-full" style={{ width: `${item.score * 10}%` }} />
+                        </div>
+                        <span className="text-lg font-black text-white w-6">{item.score}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="bg-emerald-900/40 rounded-xl px-4 py-3 border border-emerald-500/30 text-center mb-4">
+                    <p className="text-xs text-emerald-400 mb-1">採用推奨度</p>
+                    <p className="text-2xl font-black text-emerald-300">強く推奨</p>
+                  </div>
+                  <div className="bg-slate-700/40 rounded-xl p-4">
+                    <p className="text-xs text-violet-400 font-bold mb-2">🎤 面接で確認すべき質問</p>
+                    <p className="text-xs text-slate-400 leading-relaxed">第2ラリーで価格の数値根拠を提示せず関係性の話に切り替えた場面について、なぜその判断をしたのか教えてください。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Left gradient fade over mock */}
+            <div className="absolute inset-y-0 right-0 w-[580px] bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent pointer-events-none hidden md:block" />
+
+            {/* Text content */}
+            <div className="relative z-10 px-6 py-20 md:py-24 max-w-2xl">
               <p className="text-xs tracking-widest text-blue-400 uppercase mb-4">Next Generation Hiring</p>
               <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
                 <span className="block">SPIでは測れない、</span>
@@ -617,80 +659,6 @@ AIの拡大など急激に増加してるデータを管理するインフラで
               >
                 無料で試す →
               </button>
-            </div>
-
-            {/* Right: Mock screen */}
-            <div className="flex-1 max-w-sm w-full">
-              <div className="relative bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
-                {/* Mock header */}
-                <div className="bg-slate-900 px-4 py-2 flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-red-500/60" />
-                  <div className="w-2 h-2 rounded-full bg-yellow-500/60" />
-                  <div className="w-2 h-2 rounded-full bg-green-500/60" />
-                  <span className="text-xs text-slate-500 ml-2">TRACE</span>
-                </div>
-
-                {/* Step 0: シナリオ */}
-                <div className={`transition-all duration-500 ${heroStep === 0 ? "opacity-100" : "opacity-0 absolute inset-0"} p-4`}>
-                  <p className="text-xs text-blue-400 font-bold mb-3">① シナリオ生成</p>
-                  <div className="bg-slate-700/50 rounded-xl p-3 mb-3">
-                    <p className="text-xs text-slate-400 mb-1">求人票から自動生成</p>
-                    <p className="text-sm font-bold text-white">バッテリー部材 納期・価格交渉</p>
-                  </div>
-                  <div className="bg-slate-900/60 rounded-xl p-3">
-                    <p className="text-xs text-slate-500 mb-1">AI（サプライヤー）</p>
-                    <p className="text-xs text-slate-300 leading-relaxed">お世話になっております。先日ご連絡いただいた増産のご要望の件で、一度詳しくお話しできればと思いご連絡しました。</p>
-                  </div>
-                </div>
-
-                {/* Step 1: 対応中 */}
-                <div className={`transition-all duration-500 ${heroStep === 1 ? "opacity-100" : "opacity-0 absolute inset-0"} p-4`}>
-                  <p className="text-xs text-violet-400 font-bold mb-3">② 候補者が対応</p>
-                  <div className="bg-slate-700/30 rounded-xl p-3 mb-2">
-                    <p className="text-xs text-slate-400 mb-1">返信内容（アクション）</p>
-                    <p className="text-xs text-slate-300 leading-relaxed">ご連絡ありがとうございます。まず現状の生産ラインの状況を確認させていただけますか？</p>
-                  </div>
-                  <div className="bg-violet-900/30 rounded-xl p-3 border border-violet-500/20">
-                    <p className="text-xs text-violet-400 mb-1">狙い・戦略（意図）</p>
-                    <p className="text-xs text-slate-300 leading-relaxed">相手の制約を把握してから交渉を進める。無理な要求を避け信頼関係を構築する。</p>
-                  </div>
-                </div>
-
-                {/* Step 2: 評価結果 */}
-                <div className={`transition-all duration-500 ${heroStep === 2 ? "opacity-100" : "opacity-0 absolute inset-0"} p-4`}>
-                  <p className="text-xs text-emerald-400 font-bold mb-3">③ 評価レポート生成</p>
-                  <div className="space-y-2 mb-3">
-                    {[
-                      { label: "論理思考力", score: 8 },
-                      { label: "交渉力", score: 7 },
-                      { label: "状況適応力", score: 9 },
-                      { label: "主体性", score: 6 },
-                    ].map((item) => (
-                      <div key={item.label} className="flex items-center gap-2">
-                        <span className="text-xs text-slate-400 w-20 flex-shrink-0">{item.label}</span>
-                        <div className="flex-1 bg-slate-700 rounded-full h-2">
-                          <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${item.score * 10}%` }} />
-                        </div>
-                        <span className="text-xs font-black text-white w-4">{item.score}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="bg-emerald-900/30 rounded-xl px-3 py-2 border border-emerald-500/20 text-center">
-                    <p className="text-xs text-emerald-400 font-black">採用推奨度：強く推奨</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Step indicators */}
-              <div className="flex justify-center gap-2 mt-4">
-                {[0, 1, 2].map((i) => (
-                  <button
-                    key={i}
-                    onClick={() => setHeroStep(i)}
-                    className={`w-2 h-2 rounded-full transition-all ${heroStep === i ? "bg-blue-400 w-6" : "bg-slate-600"}`}
-                  />
-                ))}
-              </div>
             </div>
           </div>
 
