@@ -412,6 +412,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   const [heroStep, setHeroStep] = useState(0);
   const [suggesting, setSuggesting] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
+  const lastAiMsgRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (screen !== "top") return;
@@ -427,7 +428,11 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   }
 
   useEffect(() => {
-    if (chatRef.current) {
+    if (lastAiMsgRef.current && chatRef.current) {
+      const container = chatRef.current;
+      const el = lastAiMsgRef.current;
+      container.scrollTop = el.offsetTop - container.offsetTop - 16;
+    } else if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
   }, [messages]);
@@ -866,8 +871,10 @@ AIの拡大など急激に増加してるデータを管理するインフラで
           {/* Right: chat */}
           <div className="flex-1 flex flex-col gap-3 md:gap-4 min-h-0">
             <div ref={chatRef} className="flex-1 bg-white rounded-2xl border border-slate-100 p-5 overflow-y-auto shadow-sm flex flex-col gap-4">
-              {messages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              {messages.map((msg, i) => {
+                const isLastAi = msg.role === "ai" && messages.slice(i + 1).every(m => m.role !== "ai");
+                return (
+                <div key={i} ref={isLastAi ? lastAiMsgRef : null} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
                     msg.role === "ai"
                       ? "bg-slate-50 border border-slate-100 text-slate-700 rounded-tl-sm"
@@ -881,7 +888,8 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Input area */}
