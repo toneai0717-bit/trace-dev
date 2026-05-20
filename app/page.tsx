@@ -644,8 +644,8 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             <div className="relative z-10 px-6 py-20 md:py-24 max-w-2xl">
               <p className="text-xs tracking-widest text-blue-400 uppercase mb-4">Next Generation Hiring</p>
               <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
-                <span className="block">SPIでは測れない、</span>
-                <span className="block">
+                <span className="block whitespace-nowrap">SPIでは測れない、</span>
+                <span className="block whitespace-nowrap">
                   <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">本物の仕事力</span>を見抜く。
                 </span>
               </h1>
