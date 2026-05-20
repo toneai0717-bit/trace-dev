@@ -365,7 +365,16 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   const [showDetail, setShowDetail] = useState(false);
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
   const [toast, setToast] = useState("");
+  const [heroStep, setHeroStep] = useState(0);
   const chatRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (screen !== "top") return;
+    const timer = setInterval(() => {
+      setHeroStep((prev) => (prev + 1) % 3);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [screen]);
 
   function showToast(msg: string) {
     setToast(msg);
@@ -588,24 +597,101 @@ AIの拡大など急激に増加してるデータを管理するインフラで
         <div className="min-h-[calc(100vh-44px)] bg-slate-900 text-white">
 
           {/* Hero */}
-          <div className="flex flex-col items-center justify-center text-center px-6 py-24">
-            <p className="text-xs tracking-widest text-blue-400 uppercase mb-4">Next Generation Hiring</p>
-            <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight text-center w-full">
-              <span className="block pl-10">SPIでは測れない、</span>
-              <span className="block pl-10">
-                <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">本物の仕事力</span>を見抜く。
-              </span>
-            </h1>
-            <p className="text-slate-400 text-base md:text-lg max-w-xl leading-relaxed mb-10">
-              求人票を貼るだけで、AIがリアルな業務シナリオを生成。<br />
-              候補者が実際にどう動くかを、採用前に確かめる。
-            </p>
-            <button
-              onClick={() => setScreen("setup")}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-10 py-4 rounded-2xl text-sm transition-colors"
-            >
-              無料で試す →
-            </button>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-10 px-6 py-20 max-w-6xl mx-auto">
+            {/* Left: Text */}
+            <div className="flex-1 text-center md:text-left">
+              <p className="text-xs tracking-widest text-blue-400 uppercase mb-4">Next Generation Hiring</p>
+              <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
+                <span className="block">SPIでは測れない、</span>
+                <span className="block">
+                  <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">本物の仕事力</span>を見抜く。
+                </span>
+              </h1>
+              <p className="text-slate-400 text-base md:text-lg max-w-xl leading-relaxed mb-10">
+                求人票を貼るだけで、AIがリアルな業務シナリオを生成。<br />
+                候補者が実際にどう動くかを、採用前に確かめる。
+              </p>
+              <button
+                onClick={() => setScreen("setup")}
+                className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-10 py-4 rounded-2xl text-sm transition-colors"
+              >
+                無料で試す →
+              </button>
+            </div>
+
+            {/* Right: Mock screen */}
+            <div className="flex-1 max-w-sm w-full">
+              <div className="relative bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
+                {/* Mock header */}
+                <div className="bg-slate-900 px-4 py-2 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-red-500/60" />
+                  <div className="w-2 h-2 rounded-full bg-yellow-500/60" />
+                  <div className="w-2 h-2 rounded-full bg-green-500/60" />
+                  <span className="text-xs text-slate-500 ml-2">TRACE</span>
+                </div>
+
+                {/* Step 0: シナリオ */}
+                <div className={`transition-all duration-500 ${heroStep === 0 ? "opacity-100" : "opacity-0 absolute inset-0"} p-4`}>
+                  <p className="text-xs text-blue-400 font-bold mb-3">① シナリオ生成</p>
+                  <div className="bg-slate-700/50 rounded-xl p-3 mb-3">
+                    <p className="text-xs text-slate-400 mb-1">求人票から自動生成</p>
+                    <p className="text-sm font-bold text-white">バッテリー部材 納期・価格交渉</p>
+                  </div>
+                  <div className="bg-slate-900/60 rounded-xl p-3">
+                    <p className="text-xs text-slate-500 mb-1">AI（サプライヤー）</p>
+                    <p className="text-xs text-slate-300 leading-relaxed">お世話になっております。先日ご連絡いただいた増産のご要望の件で、一度詳しくお話しできればと思いご連絡しました。</p>
+                  </div>
+                </div>
+
+                {/* Step 1: 対応中 */}
+                <div className={`transition-all duration-500 ${heroStep === 1 ? "opacity-100" : "opacity-0 absolute inset-0"} p-4`}>
+                  <p className="text-xs text-violet-400 font-bold mb-3">② 候補者が対応</p>
+                  <div className="bg-slate-700/30 rounded-xl p-3 mb-2">
+                    <p className="text-xs text-slate-400 mb-1">返信内容（アクション）</p>
+                    <p className="text-xs text-slate-300 leading-relaxed">ご連絡ありがとうございます。まず現状の生産ラインの状況を確認させていただけますか？</p>
+                  </div>
+                  <div className="bg-violet-900/30 rounded-xl p-3 border border-violet-500/20">
+                    <p className="text-xs text-violet-400 mb-1">狙い・戦略（意図）</p>
+                    <p className="text-xs text-slate-300 leading-relaxed">相手の制約を把握してから交渉を進める。無理な要求を避け信頼関係を構築する。</p>
+                  </div>
+                </div>
+
+                {/* Step 2: 評価結果 */}
+                <div className={`transition-all duration-500 ${heroStep === 2 ? "opacity-100" : "opacity-0 absolute inset-0"} p-4`}>
+                  <p className="text-xs text-emerald-400 font-bold mb-3">③ 評価レポート生成</p>
+                  <div className="space-y-2 mb-3">
+                    {[
+                      { label: "論理思考力", score: 8 },
+                      { label: "交渉力", score: 7 },
+                      { label: "状況適応力", score: 9 },
+                      { label: "主体性", score: 6 },
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400 w-20 flex-shrink-0">{item.label}</span>
+                        <div className="flex-1 bg-slate-700 rounded-full h-2">
+                          <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${item.score * 10}%` }} />
+                        </div>
+                        <span className="text-xs font-black text-white w-4">{item.score}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="bg-emerald-900/30 rounded-xl px-3 py-2 border border-emerald-500/20 text-center">
+                    <p className="text-xs text-emerald-400 font-black">採用推奨度：強く推奨</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step indicators */}
+              <div className="flex justify-center gap-2 mt-4">
+                {[0, 1, 2].map((i) => (
+                  <button
+                    key={i}
+                    onClick={() => setHeroStep(i)}
+                    className={`w-2 h-2 rounded-full transition-all ${heroStep === i ? "bg-blue-400 w-6" : "bg-slate-600"}`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* SPIの問題点 */}
