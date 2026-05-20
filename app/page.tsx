@@ -624,7 +624,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             <div className="w-full md:w-[520px] flex-shrink-0">
               <div className="rounded-2xl overflow-hidden shadow-2xl border border-slate-700" style={{ position: "relative", paddingBottom: "42.708333333333336%", height: 0 }}>
                 <iframe
-                  src="https://www.loom.com/embed/e6bf4dc9893a4418bba02ef642a72750"
+                  src="https://www.loom.com/embed/e6bf4dc9893a4418bba02ef642a72750?hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true"
                   frameBorder="0"
                   allowFullScreen
                   style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
