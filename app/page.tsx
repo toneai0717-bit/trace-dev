@@ -459,6 +459,11 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       track("simulation_started");
       setSimConfig(data);
       setMessages([{ role: "ai", text: data.firstMsg }]);
+      setChatLogs([]);
+      setRallyCount(0);
+      setAnalysis(null);
+      setShowDetail(false);
+      setError("");
       setScreen("sim");
       setLoading(false);
     } catch (e) {
