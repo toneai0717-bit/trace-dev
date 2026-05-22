@@ -1044,7 +1044,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                     value={consultQuestion}
                     onChange={(e) => setConsultQuestion(e.target.value)}
                     rows={3}
-                    placeholder="例：○○だと考えていますが、方向性はいかがでしょうか？"
+                    placeholder=""
                     className="w-full border border-slate-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-blue-400 transition-colors mb-3"
                   />
                   <button
