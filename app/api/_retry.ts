@@ -1,8 +1,9 @@
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// ランタイムで初期化（ビルド時にAPIキーが不要）
+const getOpenAI = () => new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const getAnthropic = () => new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
   let lastError: unknown;
@@ -29,7 +30,7 @@ export async function createMessageWithFallback(params: {
 
   try {
     const message = await withRetry(() =>
-      anthropic.messages.create({
+      getAnthropic().messages.create({
         model: "claude-sonnet-4-6",
         max_tokens: maxTokens,
         system,
@@ -43,7 +44,7 @@ export async function createMessageWithFallback(params: {
     console.warn("[Fallback] Claude failed, switching to GPT-4o:", (e as Error)?.message);
   }
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: "gpt-4o",
     max_tokens: maxTokens,
     messages: [
@@ -64,7 +65,7 @@ export async function createChatWithFallback(params: {
 
   try {
     const message = await withRetry(() =>
-      anthropic.messages.create({
+      getAnthropic().messages.create({
         model: "claude-sonnet-4-6",
         max_tokens: maxTokens,
         system,
@@ -78,7 +79,7 @@ export async function createChatWithFallback(params: {
     console.warn("[Fallback] Claude failed, switching to GPT-4o:", (e as Error)?.message);
   }
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: "gpt-4o",
     max_tokens: maxTokens,
     messages: [
