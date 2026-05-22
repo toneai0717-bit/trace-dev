@@ -686,7 +686,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
           <div className="text-xs text-slate-400">
             {screen === "top" && "仕事シミュレーション採用"}
             {screen === "setup" && "仕事シミュレーション採用"}
-            {screen === "sim" && `Rally ${rallyCount} / 最大6`}
+            {screen === "sim" && `やり取り ${rallyCount} / 最大6回`}
             {screen === "result" && "評価レポート"}
           </div>
         </div>
