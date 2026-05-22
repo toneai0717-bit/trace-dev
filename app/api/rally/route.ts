@@ -1,21 +1,16 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
-import { withRetry } from "../_retry";
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+import { createChatWithFallback } from "../_retry";
 
 export async function POST(req: NextRequest) {
   try {
     const { aiRole, firstMsg, messages, chatLogs, rallyCount } = await req.json();
 
-    // Build proper alternating conversation history
-    // firstMsg is the AI's opening message - include in system context, skip from history
     const claudeMessages: { role: "user" | "assistant"; content: string }[] = [];
     let skippedFirst = false;
     for (const msg of messages) {
       if (!skippedFirst && msg.role === "ai") {
         skippedFirst = true;
-        continue; // firstMsg is referenced in system prompt
+        continue;
       }
       skippedFirst = true;
       claudeMessages.push({
@@ -24,16 +19,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 空の場合は直近のユーザーアクションだけ入れてフォールバック
     if (claudeMessages.length === 0) {
       const lastAction = chatLogs[chatLogs.length - 1]?.action ?? "";
       claudeMessages.push({ role: "user", content: lastAction });
     }
 
-    const message = await withRetry(() => client.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1024,
-      system: `あなたは「${aiRole}」です。ビジネスの現場でプレイヤーと交渉・対話する相手キャラクターを演じてください。
+    const system = `あなたは「${aiRole}」です。ビジネスの現場でプレイヤーと交渉・対話する相手キャラクターを演じてください。
 
 【キャラクター設定】
 - 自社・自部門の利益を最優先するプロフェッショナル
@@ -45,7 +36,7 @@ export async function POST(req: NextRequest) {
 あなたはこの会話をこのメッセージで始めました：
 「${firstMsg}」
 
-現在${rallyCount}回目のやり取りです（最低3回、最大6回）。
+現在${rallyCount}回目のやり取りです（最低3回、最大4回）。
 
 【返信のルール】
 - ビジネスメール形式（宛名・本文・結び・署名）
@@ -53,22 +44,22 @@ export async function POST(req: NextRequest) {
 - 500文字以内で簡潔かつリアルに
 - 前回までの自分の発言と一貫性を保つ
 - 相手の意図を読んだ上で戦略的に応答する
-以下のタグで返してください：
-<REPLY>ビジネスメール本文</REPLY>`,
-      messages: claudeMessages,
-    }));
 
-    const text =
-      message.content[0].type === "text" ? message.content[0].text : "";
+以下のタグで返してください：
+<REPLY>ビジネスメール本文</REPLY>`;
+
+    const text = await createChatWithFallback({
+      system,
+      messages: claudeMessages,
+      maxTokens: 1024,
+    });
 
     const extract = (tag: string) => {
       const match = text.match(new RegExp(`<${tag}>(.*?)<\\/${tag}>`, "s"));
       return match ? match[1].trim() : "";
     };
 
-    // タグが取れなかった場合はテキスト全体をフォールバックとして使う
     const reply = extract("REPLY") || text.trim();
-
     if (!reply) throw new Error("返信の生成に失敗しました");
 
     return NextResponse.json({ reply, shouldFinish: false });

@@ -1,8 +1,5 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
-import { withRetry } from "../_retry";
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+import { createMessageWithFallback } from "../_retry";
 
 const ROLES: Record<string, { name: string; personality: string }> = {
   boss: {
@@ -12,14 +9,6 @@ const ROLES: Record<string, { name: string; personality: string }> = {
 プレイヤーに対しては指導的だが、答えを直接教えるのではなく、ヒントや視点を与えるスタイル。
 「それを聞いてどうしたいの？」「そこで大事なのは何だと思う？」など、考えさせる質問を返すことも多い。
 忙しいので、回答は簡潔。3〜5行程度。`,
-  },
-  colleague: {
-    name: "同僚",
-    personality: `あなたはプレイヤーの同期・同僚です。
-同じ立場で一緒に仕事をしてきた仲間。気さくで本音で話せる関係。
-「俺やったらこうするけどな」「前に似たような案件あったよ」など、経験談やカジュアルな意見を共有する。
-ただし同僚なので専門的な権限はなく、あくまで個人的な意見として話す。
-4〜6行程度で、タメ口気味でOK。`,
   },
 };
 
@@ -35,9 +24,8 @@ export async function POST(req: NextRequest) {
         ).join("\n\n")}`
       : "";
 
-    const response = await withRetry(() => client.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 512,
+    const reply = await createMessageWithFallback({
+      maxTokens: 512,
       system: `${roleInfo.personality}
 
 【シミュレーションの状況】
@@ -45,15 +33,9 @@ ${simContext}
 ${contextSummary}
 
 プレイヤーが相談してきたので、${roleInfo.name}として自然に返答してください。`,
-      messages: [
-        {
-          role: "user",
-          content: question,
-        },
-      ],
-    }));
+      userContent: question,
+    });
 
-    const reply = response.content[0].type === "text" ? response.content[0].text : "";
     if (!reply) throw new Error("返答の生成に失敗しました");
 
     return NextResponse.json({ reply, roleName: roleInfo.name });

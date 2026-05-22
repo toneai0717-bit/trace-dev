@@ -1,20 +1,13 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
-import { withRetry } from "../_retry";
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+import { createMessageWithFallback } from "../_retry";
 
 export async function POST(req: NextRequest) {
   try {
     const { jd } = await req.json();
 
-    const message = await withRetry(() => client.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 4096,
-      messages: [
-        {
-          role: "user",
-          content: `求人票を元にビジネスシミュレーションのシナリオを設計してください。
+    const text = await createMessageWithFallback({
+      maxTokens: 4096,
+      system: `求人票を元にビジネスシミュレーションのシナリオを設計してください。
 
 【重要なルール】
 - プレイヤー = 求人票の職種の候補者（評価される側）
@@ -27,9 +20,8 @@ export async function POST(req: NextRequest) {
 - 会社名・人名は実在しそうな具体的な名前をつける（「〇〇株式会社」ではなく「株式会社テクノメタル」など）
 - 数値は必ず具体的に（「大幅な遅延」ではなく「3週間の遅延、損害額約800万円」など）
 - 状況は現場の緊張感が伝わるレベルで書く
-- FIRST_MSGは相手キャラクターが実際にそう言いそうなリアルなビジネスメールの書き方にする
-
-求人票：${jd}
+- FIRST_MSGは相手キャラクターが実際にそう言いそうなリアルなビジネスメールの書き方にする`,
+      userContent: `求人票：${jd}
 
 以下のタグで出力してください：
 
@@ -50,14 +42,9 @@ export async function POST(req: NextRequest) {
 【実行系】主体性, 推進力, 決断力, 粘り強さ, 目標達成力, スピード感
 【適応系】状況適応力, 変化対応力, ストレス耐性, 曖昧耐性
 </SCORE_LABELS>`,
-        },
-      ],
-    }));
+    });
 
-    const text =
-      message.content[0].type === "text" ? message.content[0].text : "";
-
-    console.log("=== Claude response ===\n", text);
+    console.log("=== response ===\n", text);
 
     const extract = (tag: string) => {
       const match = text.match(new RegExp(`<${tag}>(.*?)<\\/${tag}>`, "s"));

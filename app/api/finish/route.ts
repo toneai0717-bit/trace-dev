@@ -1,8 +1,5 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
-import { withRetry } from "../_retry";
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+import { createMessageWithFallback } from "../_retry";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,9 +11,8 @@ export async function POST(req: NextRequest) {
 
     const scoreItems = labels.map((label, i) => `${i + 1}. ${label}`).join("\n");
 
-    const message = await withRetry(() => client.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 4096,
+    const text = await createMessageWithFallback({
+      maxTokens: 4096,
       system: `あなたは採用評価の専門家です。ビジネス交渉シミュレーションのログを分析し、候補者を評価してください。
 
 この求人が求める人物像：「${targetPersona}」
@@ -62,16 +58,8 @@ ${scoreItems}
 ・総合コメント：〜
 【ラリー2】...
 ※点数は必ず「X/10」の形式で記載すること。省略不可。</DETAIL>`,
-      messages: [
-        {
-          role: "user",
-          content: `交渉ログ（各ラリーの「行動」=実際に送ったメッセージ、「意図」=裏の狙い・戦略）：\n${JSON.stringify(chatLogs, null, 2)}${consultLogs && consultLogs.length > 0 ? `\n\n社内相談ログ（上司への相談内容）：\n${JSON.stringify(consultLogs, null, 2)}\n\n【重要】社内相談ログは交渉ログと同等の重要な評価材料です。対外的なパフォーマンスだけでなく、社内での思考・行動の質がそのまま出るため、むしろ素の実力が現れます。以下の観点で必ず評価に組み込んでください：\n- 相談の質（丸投げ型 vs 仮説提示型）はスコアに直接反映させる\n- ふざけた・断片的・感情的な相談は「判断力・主体性・ストレス耐性」を大幅減点\n- 仮説を持って相談できている場合は「論理思考力・主体性」を加点\n- 相談回数が多すぎる場合は「自律性」を減点\n- 交渉で高評価でも社内相談がゴミなら採用推奨度は必ず下げること` : `\n\n【社内相談なし】\nプレイヤーは上司への相談を一切行わず全て自己判断した。これは自律性の高さとも取れるが、適切なタイミングで周囲を活用できるかという観点でも評価に言及すること。`}`,
-        },
-      ],
-    }));
-
-    const text =
-      message.content[0].type === "text" ? message.content[0].text : "";
+      userContent: `交渉ログ（各ラリーの「行動」=実際に送ったメッセージ、「意図」=裏の狙い・戦略）：\n${JSON.stringify(chatLogs, null, 2)}${consultLogs && consultLogs.length > 0 ? `\n\n社内相談ログ（上司への相談内容）：\n${JSON.stringify(consultLogs, null, 2)}\n\n【重要】社内相談ログは交渉ログと同等の重要な評価材料です。対外的なパフォーマンスだけでなく、社内での思考・行動の質がそのまま出るため、むしろ素の実力が現れます。以下の観点で必ず評価に組み込んでください：\n- 相談の質（丸投げ型 vs 仮説提示型）はスコアに直接反映させる\n- ふざけた・断片的・感情的な相談は「判断力・主体性・ストレス耐性」を大幅減点\n- 仮説を持って相談できている場合は「論理思考力・主体性」を加点\n- 相談回数が多すぎる場合は「自律性」を減点\n- 交渉で高評価でも社内相談がゴミなら採用推奨度は必ず下げること` : `\n\n【社内相談なし】\nプレイヤーは上司への相談を一切行わず全て自己判断した。これは自律性の高さとも取れるが、適切なタイミングで周囲を活用できるかという観点でも評価に言及すること。`}`,
+    });
 
     const extract = (tag: string) => {
       const match = text.match(new RegExp(`<${tag}>(.*?)<\\/${tag}>`, "s"));
