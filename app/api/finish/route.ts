@@ -6,7 +6,7 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: NextRequest) {
   try {
-    const { chatLogs, targetPersona, scoreLabels } = await req.json();
+    const { chatLogs, targetPersona, scoreLabels, consultLogs } = await req.json();
 
     const labels: string[] = Array.isArray(scoreLabels) && scoreLabels.length >= 3
       ? scoreLabels
@@ -65,7 +65,7 @@ ${scoreItems}
       messages: [
         {
           role: "user",
-          content: `交渉ログ（各ラリーの「行動」=実際に送ったメッセージ、「意図」=裏の狙い・戦略）：\n${JSON.stringify(chatLogs, null, 2)}`,
+          content: `交渉ログ（各ラリーの「行動」=実際に送ったメッセージ、「意図」=裏の狙い・戦略）：\n${JSON.stringify(chatLogs, null, 2)}${consultLogs && consultLogs.length > 0 ? `\n\n社内相談ログ（上司・同僚への相談内容）：\n${JSON.stringify(consultLogs, null, 2)}\n\n【社内相談の評価観点】\n- 相談回数が多すぎる場合は「自律性・主体性」を減点\n- 質問が「○○はどうしたらいいですか？」のような丸投げ型は「判断力不足」として指摘\n- 「○○だと考えていますが、いかがでしょうか？」のような仮説提示型は「思考力・主体性」として加点\n- 相談なしで全て自己判断した場合も言及すること` : ""}`,
         },
       ],
     }));

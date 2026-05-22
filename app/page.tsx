@@ -412,10 +412,10 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   const [heroStep, setHeroStep] = useState(0);
   const [suggesting, setSuggesting] = useState(false);
   const [showConsult, setShowConsult] = useState(false);
-  const [consultRole, setConsultRole] = useState<"boss" | "colleague">("boss");
+  const [consultTab, setConsultTab] = useState<"scenario" | "boss" | "colleague">("scenario");
   const [consultQuestion, setConsultQuestion] = useState("");
-  const [consultReply, setConsultReply] = useState("");
   const [consultLoading, setConsultLoading] = useState(false);
+  const [consultLogs, setConsultLogs] = useState<{ role: "boss" | "colleague"; question: string; reply: string }[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
   const lastAiMsgRef = useRef<HTMLDivElement>(null);
 
@@ -468,6 +468,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       setRallyCount(0);
       setAnalysis(null);
       setShowDetail(false);
+      setConsultLogs([]);
       setError("");
       setScreen("sim");
       setLoading(false);
@@ -479,13 +480,14 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 
   async function consultColleague() {
     if (!consultQuestion.trim() || !simConfig) return;
+    const role = consultTab as "boss" | "colleague";
     setConsultLoading(true);
     try {
       const res = await fetch("/api/consult", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          role: consultRole,
+          role,
           question: consultQuestion,
           simContext: simConfig.context,
           aiRole: simConfig.aiRole,
@@ -493,7 +495,10 @@ AIの拡大など急激に増加してるデータを管理するインフラで
         }),
       });
       const data = await res.json();
-      if (data.reply) setConsultReply(data.reply);
+      if (data.reply) {
+        setConsultLogs(prev => [...prev, { role, question: consultQuestion, reply: data.reply }]);
+        setConsultQuestion("");
+      }
     } catch {
       showToast("通信エラーが発生しました");
     } finally {
@@ -570,6 +575,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
           chatLogs: logs,
           targetPersona: simConfig?.targetPersona ?? "",
           scoreLabels: simConfig?.scoreLabels ?? [],
+          consultLogs,
         }),
       });
       const data = await res.json();
@@ -929,42 +935,85 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             {/* Consult modal */}
             {showConsult && (
               <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-end md:items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl">
-                  <div className="flex justify-between items-center mb-4">
-                    <p className="font-bold text-slate-800">🙋 社内に確認する</p>
-                    <button onClick={() => { setShowConsult(false); setConsultReply(""); setConsultQuestion(""); }} className="text-slate-400 hover:text-slate-600 text-xl">×</button>
+                <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl flex flex-col max-h-[80vh]">
+                  {/* Header */}
+                  <div className="flex justify-between items-center px-6 pt-5 pb-3 border-b border-slate-100">
+                    <p className="font-bold text-slate-800">🙋 確認する</p>
+                    <button onClick={() => { setShowConsult(false); setConsultQuestion(""); }} className="text-slate-400 hover:text-slate-600 text-xl">×</button>
                   </div>
-                  <div className="flex gap-2 mb-4">
-                    {[{ key: "boss", label: "👔 上司" }, { key: "colleague", label: "🤝 同僚" }].map((r) => (
+                  {/* Tabs */}
+                  <div className="flex gap-1 px-4 pt-3">
+                    {[
+                      { key: "scenario", label: "📋 シナリオ" },
+                      { key: "boss", label: "👔 上司" },
+                      { key: "colleague", label: "🤝 同僚" },
+                    ].map((t) => (
                       <button
-                        key={r.key}
-                        onClick={() => { setConsultRole(r.key as "boss" | "colleague"); setConsultReply(""); }}
-                        className={`flex-1 py-2 rounded-xl text-sm font-bold transition-colors ${consultRole === r.key ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                        key={t.key}
+                        onClick={() => setConsultTab(t.key as "scenario" | "boss" | "colleague")}
+                        className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${consultTab === t.key ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
                       >
-                        {r.label}
+                        {t.label}
                       </button>
                     ))}
                   </div>
-                  {consultReply ? (
-                    <div className="bg-slate-50 rounded-xl p-4 mb-4">
-                      <p className="text-xs font-bold text-slate-400 mb-2">{consultRole === "boss" ? "👔 上司" : "🤝 同僚"}の返答</p>
-                      <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{consultReply}</p>
+                  {/* Content */}
+                  <div className="flex-1 overflow-y-auto px-6 py-4">
+                    {/* シナリオタブ */}
+                    {consultTab === "scenario" && simConfig && (
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-xs font-bold text-blue-600 mb-2">{simConfig.title}</p>
+                          <div className="text-xs text-slate-600 leading-relaxed [&_.label]:font-bold [&_.label]:text-slate-700"
+                            dangerouslySetInnerHTML={{ __html: simConfig.context }} />
+                        </div>
+                        <div className="border-t border-slate-100 pt-3">
+                          <p className="text-xs font-bold text-slate-400 mb-2">📧 最初のメール</p>
+                          <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">{simConfig.firstMsg}</p>
+                        </div>
+                      </div>
+                    )}
+                    {/* 上司・同僚タブ */}
+                    {(consultTab === "boss" || consultTab === "colleague") && (
+                      <div className="space-y-3">
+                        {/* 過去の相談履歴 */}
+                        {consultLogs.filter(l => l.role === consultTab).map((log, i) => (
+                          <div key={i} className="space-y-2">
+                            <div className="flex justify-end">
+                              <div className="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-3 py-2 text-xs max-w-[80%] whitespace-pre-wrap">{log.question}</div>
+                            </div>
+                            <div className="flex justify-start">
+                              <div className="bg-slate-50 border border-slate-100 rounded-2xl rounded-tl-sm px-3 py-2 text-xs max-w-[80%] whitespace-pre-wrap text-slate-700">{log.reply}</div>
+                            </div>
+                          </div>
+                        ))}
+                        {consultLogs.filter(l => l.role === consultTab).length === 0 && (
+                          <p className="text-xs text-slate-400 text-center py-4">
+                            {consultTab === "boss" ? "上司に相談してみましょう" : "同僚に確認してみましょう"}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {/* Input（上司・同僚タブのみ） */}
+                  {(consultTab === "boss" || consultTab === "colleague") && (
+                    <div className="px-6 pb-5 pt-3 border-t border-slate-100">
+                      <textarea
+                        value={consultQuestion}
+                        onChange={(e) => setConsultQuestion(e.target.value)}
+                        rows={2}
+                        placeholder={consultTab === "boss" ? "例：○○だと考えていますが、方向性はいかがでしょうか？" : "例：前回の案件で似たケースってあった？"}
+                        className="w-full border border-slate-200 rounded-xl p-3 text-xs resize-none focus:outline-none focus:border-blue-400 transition-colors mb-2"
+                      />
+                      <button
+                        onClick={consultColleague}
+                        disabled={!consultQuestion.trim() || consultLoading}
+                        className="w-full bg-blue-600 text-white rounded-xl py-2.5 font-semibold hover:bg-blue-700 disabled:opacity-30 transition-colors text-sm"
+                      >
+                        {consultLoading ? "返答を待っています..." : "送信する"}
+                      </button>
                     </div>
-                  ) : null}
-                  <textarea
-                    value={consultQuestion}
-                    onChange={(e) => setConsultQuestion(e.target.value)}
-                    rows={3}
-                    placeholder={consultRole === "boss" ? "上司に相談したいことを書いてください..." : "同僚に確認したいことを書いてください..."}
-                    className="w-full border border-slate-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-blue-400 transition-colors mb-3"
-                  />
-                  <button
-                    onClick={consultColleague}
-                    disabled={!consultQuestion.trim() || consultLoading}
-                    className="w-full bg-blue-600 text-white rounded-xl py-3 font-semibold hover:bg-blue-700 disabled:opacity-30 transition-colors text-sm"
-                  >
-                    {consultLoading ? "返答を待っています..." : "相談する"}
-                  </button>
+                  )}
                 </div>
               </div>
             )}
