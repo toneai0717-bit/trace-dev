@@ -1026,10 +1026,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                   {consultLogs.length === 0 && (
                     <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
                       <p className="text-2xl mb-3">👔</p>
-                      <p className="text-sm font-semibold text-slate-600 mb-1">上司に相談する</p>
-                      <p className="text-xs text-slate-400 leading-relaxed max-w-xs">
-                        「○○だと考えていますが、いかがでしょうか？」のように、<br />自分の仮説を持って相談しましょう。
-                      </p>
+                      <p className="text-sm font-semibold text-slate-600">上司に相談する</p>
                     </div>
                   )}
                   {consultLogs.map((log, i) => (
