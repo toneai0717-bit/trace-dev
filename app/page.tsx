@@ -916,13 +916,13 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                 onClick={() => setChatTab("sim")}
                 className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${chatTab === "sim" ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"}`}
               >
-                📧 交渉チャット
+                交渉チャット
               </button>
               <button
                 onClick={() => setChatTab("boss")}
                 className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${chatTab === "boss" ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"}`}
               >
-                👔 上司に相談 {consultLogs.length > 0 && <span className="ml-1 bg-blue-500 text-white rounded-full px-1.5 py-0.5 text-[10px]">{consultLogs.length}</span>}
+                上司に相談 {consultLogs.length > 0 && <span className="ml-1 bg-blue-500 text-white rounded-full px-1.5 py-0.5 text-[10px]">{consultLogs.length}</span>}
               </button>
             </div>
 
@@ -1025,7 +1025,6 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                 <div className="flex-1 bg-white rounded-2xl border border-slate-100 p-5 overflow-y-auto shadow-sm flex flex-col gap-4">
                   {consultLogs.length === 0 && (
                     <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-                      <p className="text-2xl mb-3">👔</p>
                       <p className="text-sm font-semibold text-slate-600">上司に相談する</p>
                     </div>
                   )}
