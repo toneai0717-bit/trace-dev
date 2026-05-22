@@ -411,8 +411,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   const [toast, setToast] = useState("");
   const [heroStep, setHeroStep] = useState(0);
   const [suggesting, setSuggesting] = useState(false);
-  const [showConsult, setShowConsult] = useState(false);
-  const [consultTab, setConsultTab] = useState<"scenario" | "boss">("scenario");
+  const [chatTab, setChatTab] = useState<"sim" | "boss">("sim");
   const [consultQuestion, setConsultQuestion] = useState("");
   const [consultLoading, setConsultLoading] = useState(false);
   const [consultLogs, setConsultLogs] = useState<{ role: "boss"; question: string; reply: string }[]>([]);
@@ -469,6 +468,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       setAnalysis(null);
       setShowDetail(false);
       setConsultLogs([]);
+      setChatTab("sim");
       setError("");
       setScreen("sim");
       setLoading(false);
@@ -910,182 +910,157 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 
           {/* Right: chat */}
           <div className="flex-1 flex flex-col gap-3 md:gap-4 min-h-0">
-            <div ref={chatRef} className="flex-1 bg-white rounded-2xl border border-slate-100 p-5 overflow-y-auto shadow-sm flex flex-col gap-4">
-              {messages.map((msg, i) => {
-                const isLastAi = msg.role === "ai" && messages.slice(i + 1).every(m => m.role !== "ai");
-                return (
-                <div key={i} ref={isLastAi ? lastAiMsgRef : null} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
-                    msg.role === "ai"
-                      ? "bg-slate-50 border border-slate-100 text-slate-700 rounded-tl-sm"
-                      : "bg-blue-600 text-white rounded-tr-sm"
-                  }`}>
-                    {msg.text}
-                    {msg.intent && (
-                      <span className="block text-xs mt-2 pt-2 border-t border-white/20 text-blue-100 italic">
-                        戦略: {msg.intent}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                );
-              })}
-            </div>
-
-            {/* Consult modal */}
-            {showConsult && (
-              <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-end md:items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl flex flex-col max-h-[80vh]">
-                  {/* Header */}
-                  <div className="flex justify-between items-center px-6 pt-5 pb-3 border-b border-slate-100">
-                    <p className="font-bold text-slate-800">🙋 確認する</p>
-                    <button onClick={() => { setShowConsult(false); setConsultQuestion(""); }} className="text-slate-400 hover:text-slate-600 text-xl">×</button>
-                  </div>
-                  {/* Tabs */}
-                  <div className="flex gap-1 px-4 pt-3">
-                    {[
-                      { key: "scenario", label: "📋 シナリオ" },
-                      { key: "boss", label: "👔 上司に相談" },
-                    ].map((t) => (
-                      <button
-                        key={t.key}
-                        onClick={() => setConsultTab(t.key as "scenario" | "boss")}
-                        className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${consultTab === t.key ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
-                      >
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
-                  {/* Content */}
-                  <div className="flex-1 overflow-y-auto px-6 py-4">
-                    {/* シナリオタブ */}
-                    {consultTab === "scenario" && simConfig && (
-                      <div className="space-y-3">
-                        <div>
-                          <p className="text-xs font-bold text-blue-600 mb-2">{simConfig.title}</p>
-                          <div className="text-xs text-slate-600 leading-relaxed [&_.label]:font-bold [&_.label]:text-slate-700"
-                            dangerouslySetInnerHTML={{ __html: simConfig.context }} />
-                        </div>
-                        <div className="border-t border-slate-100 pt-3">
-                          <p className="text-xs font-bold text-slate-400 mb-2">📧 最初のメール</p>
-                          <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">{simConfig.firstMsg}</p>
-                        </div>
-                      </div>
-                    )}
-                    {/* 上司タブ */}
-                    {consultTab === "boss" && (
-                      <div className="space-y-3">
-                        {/* 過去の相談履歴 */}
-                        {consultLogs.map((log, i) => (
-                          <div key={i} className="space-y-2">
-                            <div className="flex justify-end">
-                              <div className="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-3 py-2 text-xs max-w-[80%] whitespace-pre-wrap">{log.question}</div>
-                            </div>
-                            <div className="flex justify-start">
-                              <div className="bg-slate-50 border border-slate-100 rounded-2xl rounded-tl-sm px-3 py-2 text-xs max-w-[80%] whitespace-pre-wrap text-slate-700">{log.reply}</div>
-                            </div>
-                          </div>
-                        ))}
-                        {consultLogs.length === 0 && (
-                          <p className="text-xs text-slate-400 text-center py-4">上司に相談してみましょう</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  {/* Input（上司タブのみ） */}
-                  {consultTab === "boss" && (
-                    <div className="px-6 pb-5 pt-3 border-t border-slate-100">
-                      <textarea
-                        value={consultQuestion}
-                        onChange={(e) => setConsultQuestion(e.target.value)}
-                        rows={2}
-                        placeholder="例：○○だと考えていますが、方向性はいかがでしょうか？"
-                        className="w-full border border-slate-200 rounded-xl p-3 text-xs resize-none focus:outline-none focus:border-blue-400 transition-colors mb-2"
-                      />
-                      <button
-                        onClick={consultColleague}
-                        disabled={!consultQuestion.trim() || consultLoading}
-                        className="w-full bg-blue-600 text-white rounded-xl py-2.5 font-semibold hover:bg-blue-700 disabled:opacity-30 transition-colors text-sm"
-                      >
-                        {consultLoading ? "返答を待っています..." : "送信する"}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Input area */}
-            <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
-              <div className="flex justify-between mb-2">
-                <button
-                  onClick={() => { setShowConsult(true); setConsultQuestion(""); }}
-                  className="text-xs text-slate-400 hover:text-blue-500 border border-slate-200 hover:border-blue-300 rounded-lg px-3 py-1.5 transition-colors"
-                >
-                  🙋 社内に確認する
-                </button>
-                <button
-                  onClick={async () => {
-                    if (suggesting || !simConfig) return;
-                    setSuggesting(true);
-                    try {
-                      const lastAiMsg = [...messages].reverse().find(m => m.role === "ai")?.text ?? "";
-                      const res = await fetch("/api/suggest", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          aiRole: simConfig.aiRole,
-                          lastAiMessage: lastAiMsg,
-                          rallyCount,
-                          context: simConfig.context,
-                        }),
-                      });
-                      const data = await res.json();
-                      if (data.action) setAction(data.action);
-                      if (data.intent) setIntent(data.intent);
-                    } catch {
-                      showToast("サンプル生成に失敗しました");
-                    } finally {
-                      setSuggesting(false);
-                    }
-                  }}
-                  disabled={suggesting}
-                  className="text-xs text-slate-400 hover:text-blue-500 border border-slate-200 hover:border-blue-300 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
-                >
-                  {suggesting ? "生成中..." : "💡 AI提案"}
-                </button>
-              </div>
-              <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-3">
-                <div className="flex-1">
-                  <label className="block text-xs font-bold text-slate-400 mb-1">返信内容（アクション）</label>
-                  <textarea
-                    value={action}
-                    onChange={(e) => setAction(e.target.value)}
-                    rows={3}
-                    className="w-full border border-slate-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-blue-400 transition-colors"
-                    placeholder="相手へのメッセージを書いてください..."
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-xs font-bold text-violet-400 mb-1">狙い・戦略（意図）</label>
-                  <textarea
-                    value={intent}
-                    onChange={(e) => setIntent(e.target.value)}
-                    rows={3}
-                    className="w-full border border-violet-200 bg-violet-50 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-violet-400 transition-colors"
-                    placeholder="このメッセージの狙いを書いてください..."
-                  />
-                </div>
-              </div>
-              {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+            {/* Tab switcher */}
+            <div className="flex gap-2">
               <button
-                onClick={processRally}
-                disabled={!action.trim() || !intent.trim()}
-                className="w-full bg-slate-900 text-white rounded-xl py-3 font-semibold hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                onClick={() => setChatTab("sim")}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${chatTab === "sim" ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"}`}
               >
-                送信する
+                📧 交渉チャット
+              </button>
+              <button
+                onClick={() => setChatTab("boss")}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${chatTab === "boss" ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+              >
+                👔 上司に相談 {consultLogs.length > 0 && <span className="ml-1 bg-blue-500 text-white rounded-full px-1.5 py-0.5 text-[10px]">{consultLogs.length}</span>}
               </button>
             </div>
+
+            {/* 交渉チャット */}
+            {chatTab === "sim" && (
+              <>
+                <div ref={chatRef} className="flex-1 bg-white rounded-2xl border border-slate-100 p-5 overflow-y-auto shadow-sm flex flex-col gap-4">
+                  {messages.map((msg, i) => {
+                    const isLastAi = msg.role === "ai" && messages.slice(i + 1).every(m => m.role !== "ai");
+                    return (
+                    <div key={i} ref={isLastAi ? lastAiMsgRef : null} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
+                        msg.role === "ai"
+                          ? "bg-slate-50 border border-slate-100 text-slate-700 rounded-tl-sm"
+                          : "bg-blue-600 text-white rounded-tr-sm"
+                      }`}>
+                        {msg.text}
+                        {msg.intent && (
+                          <span className="block text-xs mt-2 pt-2 border-t border-white/20 text-blue-100 italic">
+                            戦略: {msg.intent}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    );
+                  })}
+                </div>
+
+                {/* Input area */}
+                <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+                  <div className="flex justify-end mb-2">
+                    <button
+                      onClick={async () => {
+                        if (suggesting || !simConfig) return;
+                        setSuggesting(true);
+                        try {
+                          const lastAiMsg = [...messages].reverse().find(m => m.role === "ai")?.text ?? "";
+                          const res = await fetch("/api/suggest", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              aiRole: simConfig.aiRole,
+                              lastAiMessage: lastAiMsg,
+                              rallyCount,
+                              context: simConfig.context,
+                            }),
+                          });
+                          const data = await res.json();
+                          if (data.action) setAction(data.action);
+                          if (data.intent) setIntent(data.intent);
+                        } catch {
+                          showToast("サンプル生成に失敗しました");
+                        } finally {
+                          setSuggesting(false);
+                        }
+                      }}
+                      disabled={suggesting}
+                      className="text-xs text-slate-400 hover:text-blue-500 border border-slate-200 hover:border-blue-300 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
+                    >
+                      {suggesting ? "生成中..." : "💡 AI提案"}
+                    </button>
+                  </div>
+                  <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-3">
+                    <div className="flex-1">
+                      <label className="block text-xs font-bold text-slate-400 mb-1">返信内容（アクション）</label>
+                      <textarea
+                        value={action}
+                        onChange={(e) => setAction(e.target.value)}
+                        rows={3}
+                        className="w-full border border-slate-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-blue-400 transition-colors"
+                        placeholder="相手へのメッセージを書いてください..."
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-xs font-bold text-violet-400 mb-1">狙い・戦略（意図）</label>
+                      <textarea
+                        value={intent}
+                        onChange={(e) => setIntent(e.target.value)}
+                        rows={3}
+                        className="w-full border border-violet-200 bg-violet-50 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-violet-400 transition-colors"
+                        placeholder="このメッセージの狙いを書いてください..."
+                      />
+                    </div>
+                  </div>
+                  {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+                  <button
+                    onClick={processRally}
+                    disabled={!action.trim() || !intent.trim()}
+                    className="w-full bg-slate-900 text-white rounded-xl py-3 font-semibold hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    送信する
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* 上司チャット */}
+            {chatTab === "boss" && (
+              <>
+                <div className="flex-1 bg-white rounded-2xl border border-slate-100 p-5 overflow-y-auto shadow-sm flex flex-col gap-4">
+                  {consultLogs.length === 0 && (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
+                      <p className="text-2xl mb-3">👔</p>
+                      <p className="text-sm font-semibold text-slate-600 mb-1">上司に相談する</p>
+                      <p className="text-xs text-slate-400 leading-relaxed max-w-xs">
+                        「○○だと考えていますが、いかがでしょうか？」のように、<br />自分の仮説を持って相談しましょう。
+                      </p>
+                    </div>
+                  )}
+                  {consultLogs.map((log, i) => (
+                    <div key={i} className="space-y-2">
+                      <div className="flex justify-end">
+                        <div className="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-3 text-sm max-w-[80%] whitespace-pre-wrap">{log.question}</div>
+                      </div>
+                      <div className="flex justify-start">
+                        <div className="bg-slate-50 border border-slate-100 rounded-2xl rounded-tl-sm px-4 py-3 text-sm max-w-[80%] whitespace-pre-wrap text-slate-700">{log.reply}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+                  <textarea
+                    value={consultQuestion}
+                    onChange={(e) => setConsultQuestion(e.target.value)}
+                    rows={3}
+                    placeholder="例：○○だと考えていますが、方向性はいかがでしょうか？"
+                    className="w-full border border-slate-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-blue-400 transition-colors mb-3"
+                  />
+                  <button
+                    onClick={consultColleague}
+                    disabled={!consultQuestion.trim() || consultLoading}
+                    className="w-full bg-slate-900 text-white rounded-xl py-3 font-semibold hover:bg-slate-700 disabled:opacity-30 transition-colors"
+                  >
+                    {consultLoading ? "返答を待っています..." : "送信する"}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
