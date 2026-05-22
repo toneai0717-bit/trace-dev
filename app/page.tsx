@@ -1167,18 +1167,18 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 
           {/* ⑥ アクション */}
           <div className="flex gap-3 print:hidden">
-            <button onClick={downloadPDF} className="flex-1 bg-slate-900 text-white rounded-xl py-3 font-semibold hover:bg-slate-700 transition-colors text-sm">
-              📄 PDFで保存
+            <button onClick={downloadPDF} className="flex-1 bg-orange-500 hover:bg-orange-400 text-white rounded-xl py-3 font-semibold transition-colors text-sm">
+              PDFで保存
             </button>
             <button
               onClick={() => setScreen("sim")}
-              className="flex-1 border border-blue-200 text-blue-600 rounded-xl py-3 font-semibold hover:bg-blue-50 transition-colors text-sm"
+              className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl py-3 font-semibold transition-colors text-sm"
             >
-              💬 やり取りを確認
+              やり取りを確認
             </button>
             <button
               onClick={() => { setScreen("setup"); setJd(""); setMessages([]); setChatLogs([]); setRallyCount(0); setAnalysis(null); setSimConfig(null); setError(""); setShowDetail(false); }}
-              className="flex-1 border border-slate-200 text-slate-600 rounded-xl py-3 font-semibold hover:bg-slate-50 transition-colors text-sm"
+              className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-xl py-3 font-semibold transition-colors text-sm"
             >
               もう一度
             </button>
