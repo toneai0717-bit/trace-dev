@@ -53,11 +53,8 @@ export async function POST(req: NextRequest) {
 - 500文字以内で簡潔かつリアルに
 - 前回までの自分の発言と一貫性を保つ
 - 相手の意図を読んだ上で戦略的に応答する
-${rallyCount >= 4 ? "- 十分な交渉が行われたと判断できる場合は SHOULD_FINISH を yes にしてください。" : "- まだ交渉の序盤〜中盤なので SHOULD_FINISH は必ず no にしてください。"}
-
 以下のタグで返してください：
-<REPLY>ビジネスメール本文</REPLY>
-<SHOULD_FINISH>yes または no</SHOULD_FINISH>`,
+<REPLY>ビジネスメール本文</REPLY>`,
       messages: claudeMessages,
     }));
 
@@ -70,12 +67,11 @@ ${rallyCount >= 4 ? "- 十分な交渉が行われたと判断できる場合は
     };
 
     // タグが取れなかった場合はテキスト全体をフォールバックとして使う
-    const reply = extract("REPLY") || text.replace(/<SHOULD_FINISH>[\s\S]*?<\/SHOULD_FINISH>/, "").trim();
-    const shouldFinish = extract("SHOULD_FINISH") === "yes";
+    const reply = extract("REPLY") || text.trim();
 
     if (!reply) throw new Error("返信の生成に失敗しました");
 
-    return NextResponse.json({ reply, shouldFinish });
+    return NextResponse.json({ reply, shouldFinish: false });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: String(e) }, { status: 500 });

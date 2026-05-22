@@ -552,7 +552,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 
       setMessages([...newMessages, { role: "ai", text: data.reply }]);
 
-      if (data.shouldFinish || newCount >= 6) {
+      if (newCount >= 4) {
         await finishSimulation(newLogs);
       } else {
         setLoading(false);
@@ -686,7 +686,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
           <div className="text-xs text-slate-400">
             {screen === "top" && "仕事シミュレーション採用"}
             {screen === "setup" && "仕事シミュレーション採用"}
-            {screen === "sim" && `やり取り ${rallyCount} / 最大6回`}
+            {screen === "sim" && `やり取り ${rallyCount} / 4回`}
             {screen === "result" && "評価レポート"}
           </div>
         </div>
