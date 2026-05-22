@@ -412,10 +412,10 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   const [heroStep, setHeroStep] = useState(0);
   const [suggesting, setSuggesting] = useState(false);
   const [showConsult, setShowConsult] = useState(false);
-  const [consultTab, setConsultTab] = useState<"scenario" | "boss" | "colleague">("scenario");
+  const [consultTab, setConsultTab] = useState<"scenario" | "boss">("scenario");
   const [consultQuestion, setConsultQuestion] = useState("");
   const [consultLoading, setConsultLoading] = useState(false);
-  const [consultLogs, setConsultLogs] = useState<{ role: "boss" | "colleague"; question: string; reply: string }[]>([]);
+  const [consultLogs, setConsultLogs] = useState<{ role: "boss"; question: string; reply: string }[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
   const lastAiMsgRef = useRef<HTMLDivElement>(null);
 
@@ -480,7 +480,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 
   async function consultColleague() {
     if (!consultQuestion.trim() || !simConfig) return;
-    const role = consultTab as "boss" | "colleague";
+    const role: "boss" = "boss";
     setConsultLoading(true);
     try {
       const res = await fetch("/api/consult", {
@@ -945,12 +945,11 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                   <div className="flex gap-1 px-4 pt-3">
                     {[
                       { key: "scenario", label: "📋 シナリオ" },
-                      { key: "boss", label: "👔 上司" },
-                      { key: "colleague", label: "🤝 同僚" },
+                      { key: "boss", label: "👔 上司に相談" },
                     ].map((t) => (
                       <button
                         key={t.key}
-                        onClick={() => setConsultTab(t.key as "scenario" | "boss" | "colleague")}
+                        onClick={() => setConsultTab(t.key as "scenario" | "boss")}
                         className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${consultTab === t.key ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
                       >
                         {t.label}
@@ -973,11 +972,11 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                         </div>
                       </div>
                     )}
-                    {/* 上司・同僚タブ */}
-                    {(consultTab === "boss" || consultTab === "colleague") && (
+                    {/* 上司タブ */}
+                    {consultTab === "boss" && (
                       <div className="space-y-3">
                         {/* 過去の相談履歴 */}
-                        {consultLogs.filter(l => l.role === consultTab).map((log, i) => (
+                        {consultLogs.map((log, i) => (
                           <div key={i} className="space-y-2">
                             <div className="flex justify-end">
                               <div className="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-3 py-2 text-xs max-w-[80%] whitespace-pre-wrap">{log.question}</div>
@@ -987,22 +986,20 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                             </div>
                           </div>
                         ))}
-                        {consultLogs.filter(l => l.role === consultTab).length === 0 && (
-                          <p className="text-xs text-slate-400 text-center py-4">
-                            {consultTab === "boss" ? "上司に相談してみましょう" : "同僚に確認してみましょう"}
-                          </p>
+                        {consultLogs.length === 0 && (
+                          <p className="text-xs text-slate-400 text-center py-4">上司に相談してみましょう</p>
                         )}
                       </div>
                     )}
                   </div>
-                  {/* Input（上司・同僚タブのみ） */}
-                  {(consultTab === "boss" || consultTab === "colleague") && (
+                  {/* Input（上司タブのみ） */}
+                  {consultTab === "boss" && (
                     <div className="px-6 pb-5 pt-3 border-t border-slate-100">
                       <textarea
                         value={consultQuestion}
                         onChange={(e) => setConsultQuestion(e.target.value)}
                         rows={2}
-                        placeholder={consultTab === "boss" ? "例：○○だと考えていますが、方向性はいかがでしょうか？" : "例：前回の案件で似たケースってあった？"}
+                        placeholder="例：○○だと考えていますが、方向性はいかがでしょうか？"
                         className="w-full border border-slate-200 rounded-xl p-3 text-xs resize-none focus:outline-none focus:border-blue-400 transition-colors mb-2"
                       />
                       <button
@@ -1022,7 +1019,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
               <div className="flex justify-between mb-2">
                 <button
-                  onClick={() => { setShowConsult(true); setConsultReply(""); setConsultQuestion(""); }}
+                  onClick={() => { setShowConsult(true); setConsultQuestion(""); }}
                   className="text-xs text-slate-400 hover:text-blue-500 border border-slate-200 hover:border-blue-300 rounded-lg px-3 py-1.5 transition-colors"
                 >
                   🙋 社内に確認する
