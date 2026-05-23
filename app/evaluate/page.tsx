@@ -181,11 +181,11 @@ export default function EvaluatePage() {
                 <p className="text-sm text-slate-700 leading-relaxed">{result.personality}</p>
               </div>
               <div>
-                <h2 className="text-xs font-bold text-emerald-500 mb-1">複数回で一貫した強み</h2>
+                <h2 className="text-xs font-bold text-emerald-500 mb-1">判断の根底にある価値観・強み</h2>
                 <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{result.consistentStrengths}</p>
               </div>
               <div>
-                <h2 className="text-xs font-bold text-amber-500 mb-1">複数回で一貫した課題</h2>
+                <h2 className="text-xs font-bold text-amber-500 mb-1">判断の癖・課題・懸念</h2>
                 <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{result.consistentWeaknesses}</p>
               </div>
               <div>
