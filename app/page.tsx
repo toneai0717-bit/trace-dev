@@ -517,7 +517,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   const [showContext, setShowContext] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
-  const [simType, setSimType] = useState<"email" | "data">("email");
+  const [simType, setSimType] = useState<"email" | "data" | "priority">("email");
   const [toast, setToast] = useState("");
   const [heroStep, setHeroStep] = useState(0);
   const [suggesting, setSuggesting] = useState(false);
