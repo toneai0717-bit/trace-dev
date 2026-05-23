@@ -1011,7 +1011,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                   <button
                     onClick={processRally}
                     disabled={!action.trim() || !intent.trim()}
-                    className="w-full bg-slate-900 text-white rounded-xl py-3 font-semibold hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="w-full bg-sky-500 text-white rounded-xl py-3 font-semibold hover:bg-sky-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                   >
                     送信する
                   </button>
@@ -1050,7 +1050,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                   <button
                     onClick={consultColleague}
                     disabled={!consultQuestion.trim() || consultLoading}
-                    className="w-full bg-slate-900 text-white rounded-xl py-3 font-semibold hover:bg-slate-700 disabled:opacity-30 transition-colors"
+                    className="w-full bg-sky-500 text-white rounded-xl py-3 font-semibold hover:bg-sky-400 disabled:opacity-30 transition-colors"
                   >
                     {consultLoading ? "返答を待っています..." : "送信する"}
                   </button>
