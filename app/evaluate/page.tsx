@@ -46,8 +46,8 @@ export default function EvaluatePage() {
   const handleEvaluate = async () => {
     setError("");
     const ids = urls.map(extractId).filter(Boolean) as string[];
-    if (ids.length < 2) {
-      setError("有効なレポートURLを2件以上入力してください");
+    if (ids.length < 3) {
+      setError("3件以上のレポートURLを入力してください");
       return;
     }
 
@@ -88,7 +88,7 @@ export default function EvaluatePage() {
         {!result && (
           <div className="bg-white rounded-2xl p-5 border border-slate-100 space-y-4">
             <h1 className="text-base font-black text-slate-800">複数シミュレーション 統合評価</h1>
-            <p className="text-xs text-slate-500 leading-relaxed">候補者が受けたシミュレーションのレポートURLを入力してください。2〜4件で統合評価を生成します。</p>
+            <p className="text-xs text-slate-500 leading-relaxed">候補者が受けたシミュレーションのレポートURLを入力してください。3〜4件で統合評価・採用推奨度を生成します。</p>
 
             <div className="space-y-3">
               {urls.map((url, i) => (

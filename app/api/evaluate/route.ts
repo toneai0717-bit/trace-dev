@@ -6,8 +6,8 @@ export async function POST(req: NextRequest) {
   try {
     const { reportIds } = await req.json();
 
-    if (!reportIds || reportIds.length < 2) {
-      return NextResponse.json({ error: "2件以上のレポートが必要です" }, { status: 400 });
+    if (!reportIds || reportIds.length < 3) {
+      return NextResponse.json({ error: "3件以上のレポートが必要です" }, { status: 400 });
     }
 
     // 各レポートを取得
