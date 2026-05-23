@@ -41,7 +41,8 @@ export async function POST(req: NextRequest) {
 - 複数回で見たいのは「一貫した思考パターン」ではなく「判断の根底にある価値観・優先軸」
 - 「何を大事にして動いているか」は状況が変わっても変わらない。そこを見る
 - 状況を正しく読んで、その場に合った判断ができているかも重要な評価軸
-- 良い点だけでなく、リスクや懸念点も率直に記載する`,
+- 良い点だけでなく、リスクや懸念点も率直に記載する
+- **マークダウン記法（**太字**、*斜体*など）は一切使わないこと**`,
       userContent: `以下は同一候補者が受けた${reports.length}回のシミュレーション結果です。
 
 ${reportSummaries}
@@ -58,7 +59,7 @@ ${reportSummaries}
 
     const extract = (tag: string) => {
       const match = text.match(new RegExp(`<${tag}>(.*?)<\\/${tag}>`, "s"));
-      return match ? match[1].trim() : "";
+      return match ? match[1].trim().replace(/\*\*/g, "").replace(/[\*\_]/g, "") : "";
     };
 
     return NextResponse.json({
