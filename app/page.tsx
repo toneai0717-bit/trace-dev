@@ -836,6 +836,12 @@ AIの拡大など急激に増加してるデータを管理するインフラで
               評価レポートへ →
             </button>
           )}
+          <a
+            href="/evaluate"
+            className="text-xs text-violet-400 hover:text-violet-300 transition-colors font-semibold"
+          >
+            統合評価
+          </a>
           <div className="text-xs text-slate-400">
             {screen === "top" && "仕事シミュレーション採用"}
             {screen === "setup" && "仕事シミュレーション採用"}
