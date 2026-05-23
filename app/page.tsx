@@ -408,6 +408,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   const [showContext, setShowContext] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
+  const [simType, setSimType] = useState<"email" | "data">("email");
   const [toast, setToast] = useState("");
   const [heroStep, setHeroStep] = useState(0);
   const [suggesting, setSuggesting] = useState(false);
@@ -824,6 +825,23 @@ AIの拡大など急激に増加してるデータを管理するインフラで
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 w-full max-w-lg">
             <h2 className="text-xl font-bold text-slate-800 mb-1">シミュレーション開始</h2>
             <p className="text-sm text-slate-500 mb-6">職種・シナリオを選ぶか、求人票を直接貼り付けてください。</p>
+
+            {/* シミュレーション種類選択 */}
+            <label className="block text-xs font-bold text-slate-500 mb-2">シミュレーションの種類</label>
+            <div className="flex gap-2 mb-6">
+              <button
+                onClick={() => setSimType("email")}
+                className={`flex-1 py-3 rounded-xl text-sm font-bold border transition-colors ${simType === "email" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"}`}
+              >
+                📧 メール対応
+              </button>
+              <button
+                onClick={() => setSimType("data")}
+                className={`flex-1 py-3 rounded-xl text-sm font-bold border transition-colors ${simType === "data" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"}`}
+              >
+                📊 数字分析
+              </button>
+            </div>
 
             {/* 職種選択 */}
             <label className="block text-xs font-bold text-slate-500 mb-2">職種から選ぶ</label>
