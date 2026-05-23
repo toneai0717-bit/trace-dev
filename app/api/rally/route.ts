@@ -3,7 +3,7 @@ import { createChatWithFallback } from "../_retry";
 
 export async function POST(req: NextRequest) {
   try {
-    const { aiRole, firstMsg, messages, chatLogs, rallyCount, simType = "email" } = await req.json();
+    const { aiRole, firstMsg, context, messages, chatLogs, rallyCount, simType = "email" } = await req.json();
 
     const claudeMessages: { role: "user" | "assistant"; content: string }[] = [];
     let skippedFirst = false;
@@ -31,15 +31,23 @@ export async function POST(req: NextRequest) {
     const system = isReport
       ? `あなたは「${aiRole}」です。プレイヤー（戸根）から報告を受けた上司として応答してください。
 
-【シナリオ概要】
+【シナリオの背景・設定】
+${context ? context.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim() : ""}
+
+【最初の依頼内容】
 ${firstMsg}
 
 現在${rallyCount}回目のやり取りです（最低3回、最大4回）。
 
-【上司としての応答ルール】
-- プレイヤーの報告内容を受けて、鋭い質問・追加確認・修正要求を1〜2点出す
-- 「それで十分か？」「根拠は？」「他の選択肢は考えたか？」など、報告の穴を突く
+【キャラクター設定】
+- あなたはこのシナリオの背景に書かれた立場・経緯を持つ上司として一貫して振る舞う
+- 自分が推進・関与した施策や判断については、簡単には否定しない。データを突きつけられても「そう単純じゃない」と抵抗する場面もある
 - 感情的にならないが、プレッシャーは与える
+- 戸根の報告の穴を突き、根拠・代替案・リスクを問う
+
+【応答ルール】
+- 冒頭に必ず「${aiRole}：」とラベルをつける
+- プレイヤーの報告を受けて、鋭い質問・追加確認を1〜2点出す
 - 全体で300文字以内
 - 最後に「この点についてどう答える？」と1行で問いかける
 - ビジネス口語調で自然に（メール形式不要）

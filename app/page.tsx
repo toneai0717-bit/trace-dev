@@ -645,6 +645,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
         body: JSON.stringify({
           aiRole: simConfig.aiRole,
           firstMsg: simConfig.firstMsg,
+          context: simConfig.context,
           messages: newMessages,
           chatLogs: newLogs,
           rallyCount: newCount,
