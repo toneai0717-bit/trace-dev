@@ -565,7 +565,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
     setRallyCount(newCount);
 
     setLoading(true);
-    setLoadingMsg("相手が返信を作成中...");
+    setLoadingMsg(simType === "data" ? "次の情報を取得中..." : "相手が返信を作成中...");
 
     try {
       const res = await fetch("/api/rally", {
