@@ -340,6 +340,44 @@ const RECOMMENDATION_COLOR: Record<string, string> = {
   "非推奨": "bg-red-50 border-red-400 text-red-800",
 };
 
+function renderMarkdown(text: string) {
+  const lines = text.split("\n");
+  const result: React.ReactNode[] = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.includes("|") && lines[i + 1]?.match(/^\|[-| :]+\|/)) {
+      const headers = line.split("|").filter((_, idx, arr) => idx > 0 && idx < arr.length - 1).map(h => h.trim());
+      i += 2;
+      const rows: string[][] = [];
+      while (i < lines.length && lines[i].includes("|")) {
+        rows.push(lines[i].split("|").filter((_, idx, arr) => idx > 0 && idx < arr.length - 1).map(c => c.trim()));
+        i++;
+      }
+      result.push(
+        <div key={i} className="overflow-x-auto my-2">
+          <table className="text-xs border-collapse w-full">
+            <thead>
+              <tr>{headers.map((h, j) => <th key={j} className="border border-slate-300 bg-slate-100 px-2 py-1 text-left font-bold">{h}</th>)}</tr>
+            </thead>
+            <tbody>
+              {rows.map((row, ri) => (
+                <tr key={ri} className={ri % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                  {row.map((cell, ci) => <td key={ci} className="border border-slate-200 px-2 py-1">{cell}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    } else {
+      result.push(<p key={i} className="whitespace-pre-wrap">{line}</p>);
+      i++;
+    }
+  }
+  return result;
+}
+
 export default function Home() {
   const [screen, setScreen] = useState<Screen>("top");
   const [jd, setJd] = useState(`《兵庫県洲本市》蓄電バッテリーパック部材の購買業務【PEC　エナジーソリューション事業部】
@@ -953,12 +991,12 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                     const isLastAi = msg.role === "ai" && messages.slice(i + 1).every(m => m.role !== "ai");
                     return (
                     <div key={i} ref={isLastAi ? lastAiMsgRef : null} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
+                      <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                         msg.role === "ai"
                           ? "bg-slate-50 border border-slate-100 text-slate-700 rounded-tl-sm"
-                          : "bg-blue-600 text-white rounded-tr-sm"
+                          : "bg-blue-600 text-white rounded-tr-sm whitespace-pre-wrap"
                       }`}>
-                        {msg.text}
+                        {msg.role === "ai" && simType === "data" ? renderMarkdown(msg.text) : msg.text}
                         {msg.intent && (
                           <span className="block text-xs mt-2 pt-2 border-t border-white/20 text-blue-100 italic">
                             戦略: {msg.intent}
@@ -1006,13 +1044,13 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                   </div>
                   <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-3">
                     <div className="flex-1">
-                      <label className="block text-xs font-bold text-slate-400 mb-1">返信内容（アクション）</label>
+                      <label className="block text-xs font-bold text-slate-400 mb-1">{simType === "data" ? "アクションプラン" : "返信内容（アクション）"}</label>
                       <textarea
                         value={action}
                         onChange={(e) => setAction(e.target.value)}
                         rows={3}
                         className="w-full border border-slate-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-blue-400 transition-colors"
-                        placeholder="相手へのメッセージを書いてください..."
+                        placeholder={simType === "data" ? "アクションプランを書いてください..." : "相手へのメッセージを書いてください..."}
                       />
                     </div>
                     <div className="flex-1">
@@ -1022,7 +1060,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                         onChange={(e) => setIntent(e.target.value)}
                         rows={3}
                         className="w-full border border-violet-200 bg-violet-50 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-violet-400 transition-colors"
-                        placeholder="このメッセージの狙いを書いてください..."
+                        placeholder={simType === "data" ? "このアクションの狙いを書いてください..." : "このメッセージの狙いを書いてください..."}
                       />
                     </div>
                   </div>
