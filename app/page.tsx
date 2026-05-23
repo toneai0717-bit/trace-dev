@@ -966,6 +966,45 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             </div>
           </div>
 
+          {/* 比較表 */}
+          <div className="bg-slate-900 px-6 py-16 border-t border-slate-700">
+            <div className="max-w-3xl mx-auto">
+              <p className="text-center text-xs tracking-widest text-blue-400 uppercase mb-8">Why TRACE</p>
+              <h2 className="text-2xl font-bold text-center mb-10">従来の採用手法との違い</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr>
+                      <th className="text-left py-3 px-4 text-slate-400 font-medium text-xs w-2/5"></th>
+                      <th className="py-3 px-4 text-slate-400 font-medium text-xs text-center">SPI</th>
+                      <th className="py-3 px-4 text-slate-400 font-medium text-xs text-center">面接</th>
+                      <th className="py-3 px-4 text-blue-400 font-bold text-xs text-center">TRACE</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { label: "対策できるか", spi: "できる", interview: "できる", trace: "できない", traceGood: true },
+                      { label: "業務との関連性", spi: "低い", interview: "低い", trace: "高い", traceGood: true },
+                      { label: "思考プロセスが見えるか", spi: "見えない", interview: "担当者次第", trace: "見える", traceGood: true },
+                      { label: "取り繕えるか", spi: "—", interview: "取り繕える", trace: "取り繕えない", traceGood: true },
+                      { label: "評価の均質性", spi: "高い", interview: "属人的", trace: "高い", traceGood: true },
+                      { label: "ミスマッチリスク", spi: "高い", interview: "高い", trace: "低い", traceGood: true },
+                    ].map((row, i) => (
+                      <tr key={i} className={i % 2 === 0 ? "bg-slate-800/50" : ""}>
+                        <td className="py-3 px-4 text-slate-300 text-xs">{row.label}</td>
+                        <td className="py-3 px-4 text-slate-500 text-xs text-center">{row.spi}</td>
+                        <td className="py-3 px-4 text-slate-500 text-xs text-center">{row.interview}</td>
+                        <td className="py-3 px-4 text-center">
+                          <span className="text-blue-400 font-bold text-xs">{row.trace}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           {/* CTA */}
           <div className="bg-slate-800 px-6 py-16 text-center">
             <h2 className="text-2xl font-bold mb-4">まず、お試しください。</h2>
