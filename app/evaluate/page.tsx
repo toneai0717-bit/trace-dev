@@ -109,25 +109,6 @@ export default function EvaluatePage() {
               ))}
             </div>
 
-            {/* URL追加・削除 */}
-            <div className="flex gap-2">
-              {urls.length < 4 && (
-                <button
-                  onClick={() => setUrls([...urls, ""])}
-                  className="text-xs text-blue-500 hover:text-blue-400 font-semibold"
-                >
-                  + URLを追加
-                </button>
-              )}
-              {urls.length > 2 && (
-                <button
-                  onClick={() => setUrls(urls.slice(0, -1))}
-                  className="text-xs text-slate-400 hover:text-slate-500 font-semibold"
-                >
-                  − 削除
-                </button>
-              )}
-            </div>
 
             {error && <p className="text-xs text-red-500">{error}</p>}
 
