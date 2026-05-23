@@ -6,8 +6,22 @@ export async function POST(req: NextRequest) {
     const { jd, simType = "email" } = await req.json();
 
     const isData = simType === "data";
+    const isPriority = simType === "priority";
 
-    const system = isData
+    const system = isPriority
+      ? `求人票を元に、優先順位・タスク管理シミュレーションのシナリオを設計してください。
+
+【重要なルール】
+- プレイヤー = 求人票の職種の候補者（評価される側）
+- プレイヤーの名前は「戸根」とする
+- 「相手」はいない。プレイヤーは複数のタスクと状況に向き合い、優先順位と対応方針を問われる
+
+【シナリオのリアリティ基準】
+- 会社名・人名は実在しそうな具体的な名前をつける
+- タスクは4〜6個、それぞれ締切・重要度・緊急度が異なる
+- ゴールは「今日・今週どう動くかを決める」こと
+- FIRST_MSGは「朝、複数のタスクが一気に降ってきた状況」として書く`
+      : isData
       ? `求人票を元に、数字分析シミュレーションのシナリオを設計してください。
 
 【重要なルール】
@@ -35,7 +49,32 @@ export async function POST(req: NextRequest) {
 - 状況は現場の緊張感が伝わるレベルで書く
 - FIRST_MSGは相手キャラクターが実際にそう言いそうなリアルなビジネスメールの書き方にする`;
 
-    const userContent = isData
+    const priorityUserContent = `求人票：${jd}
+
+以下のタグで出力してください：
+
+<TITLE>シミュレーションタイトル（20字以内）</TITLE>
+<CONTEXT>以下の形式で出力（各項目は1〜2文、具体的な固有名詞を含めて）：
+<p><span class="label">【状況】</span>具体的な職場・役割・状況説明</p>
+<p><span class="label">【課題】</span>今日直面している問題・プレッシャー</p>
+<p><span class="label">【ミッション】</span>今日・今週中に何をどう動くかを決める</p>
+</CONTEXT>
+<AI_ROLE>優先順位・タスク管理シミュレーション</AI_ROLE>
+<TARGET_PERSONA>JDが求める人物像（1〜2文）</TARGET_PERSONA>
+<FIRST_MSG>【今朝の状況】として、以下を含む内容を書く：
+- 4〜6個のタスク・依頼・問題が同時に降ってきた状況（箇条書き）
+- 各タスクに締切・依頼者・重要度のヒントを含める
+- 最後に「あなたはどの順番で、何をやりますか？その理由も教えてください」と問いかける
+（メール形式不要。状況リストとして書く）</FIRST_MSG>
+<SCORE_LABELS>このJDの職種・人物像に合わせて、以下のコンピテンシーバンクから候補者評価に最も重要な軸をちょうど6個選び、カンマ区切りで列挙する。バンク外の造語は使わないこと。
+
+【思考系】論理思考力, 概念化力, 戦略的思考, 分析力, 本質把握力, 仮説構築力
+【対人系】傾聴力, 共感力, 影響力, 交渉力, 調整力, 信頼構築力, 巻き込み力, 提案力
+【実行系】主体性, 推進力, 決断力, 粘り強さ, 目標達成力, スピード感
+【適応系】状況適応力, 変化対応力, ストレス耐性, 曖昧耐性
+</SCORE_LABELS>`;
+
+    const userContent = isPriority ? priorityUserContent : isData
       ? `求人票：${jd}
 
 以下のタグで出力してください：

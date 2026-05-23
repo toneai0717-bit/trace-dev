@@ -25,8 +25,27 @@ export async function POST(req: NextRequest) {
     }
 
     const isData = simType === "data";
+    const isPriority = simType === "priority";
 
-    const system = isData
+    const system = isPriority
+      ? `あなたは優先順位・タスク管理シミュレーションの進行役です。
+
+【シナリオ概要】
+${firstMsg}
+
+現在${rallyCount}回目のやり取りです（最低3回、最大4回）。
+
+【割り込み追加のルール】
+- プレイヤーの優先順位判断を受けて、新たな割り込みを1件追加する
+- 割り込みは緊急度・重要度がバラバラなものを入れる（すべて緊急にしない）
+- 全体で200文字以内に収める
+- プレイヤーの判断を評価しない。ただ状況を変化させる
+- 最後に「この状況を踏まえて、優先順位を見直しますか？」と1行で問いかける
+- 【割り込み発生】というラベルで始める
+
+以下のタグで返してください：
+<REPLY>割り込みと問いかけ</REPLY>`
+      : isData
       ? `あなたは数字分析シミュレーションの進行役です。
 
 【シナリオ概要】
