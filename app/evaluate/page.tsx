@@ -78,7 +78,7 @@ export default function EvaluatePage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between">
-        <div className="text-lg font-black tracking-tight text-slate-800">TRACE</div>
+        <a href="/" className="text-lg font-black tracking-tight text-slate-800 hover:opacity-70 transition-opacity">TRACE</a>
         <div className="text-xs text-slate-400">統合評価</div>
       </header>
 
