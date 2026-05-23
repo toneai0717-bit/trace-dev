@@ -883,8 +883,8 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             </div>
 
             {/* 職種選択 */}
-            {simType === "email" && <label className="block text-xs font-bold text-slate-500 mb-2">職種から選ぶ</label>}
-            {simType === "email" && <div className="flex flex-wrap gap-2 mb-4">
+            <label className="block text-xs font-bold text-slate-500 mb-2">職種から選ぶ</label>
+            <div className="flex flex-wrap gap-2 mb-4">
               {JOB_TEMPLATES.map((job) => (
                 <button
                   key={job.label}
@@ -898,7 +898,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                   {job.label}
                 </button>
               ))}
-            </div>}
+            </div>
 
             {/* パターン選択 */}
             {simType === "email" && selectedJob && (
