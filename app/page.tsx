@@ -1294,7 +1294,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
               </div>
               <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-4">
                 <div>
-                  <p className="text-xs font-bold text-orange-500 mb-1">💡 この商談の山場</p>
+                  <p className="text-xs font-bold text-orange-500 mb-1">💡 このシミュレーションの山場</p>
                   <p className="text-sm text-slate-600 leading-relaxed">{analysis.critical_point}</p>
                 </div>
                 <div className="border-t border-slate-100 pt-4">
