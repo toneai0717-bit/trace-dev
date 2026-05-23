@@ -914,13 +914,13 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             <div className="flex gap-2">
               <button
                 onClick={() => setChatTab("sim")}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${chatTab === "sim" ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${chatTab === "sim" ? "bg-sky-500 text-white" : "bg-white border border-sky-200 text-sky-500 hover:bg-sky-50"}`}
               >
                 交渉チャット
               </button>
               <button
                 onClick={() => setChatTab("boss")}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${chatTab === "boss" ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${chatTab === "boss" ? "bg-sky-500 text-white" : "bg-white border border-sky-200 text-sky-500 hover:bg-sky-50"}`}
               >
                 上司に相談 {consultLogs.length > 0 && <span className="ml-1 bg-blue-500 text-white rounded-full px-1.5 py-0.5 text-[10px]">{consultLogs.length}</span>}
               </button>
