@@ -876,12 +876,6 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             >
               無料で試す →
             </button>
-            <a
-              href="/evaluate"
-              className="mt-4 text-xs text-slate-400 hover:text-violet-400 transition-colors font-semibold"
-            >
-              複数回の結果を統合評価する →
-            </a>
           </div>
 
           {/* SPIの問題点 */}
@@ -1270,7 +1264,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
           {/* ① スコア → 結果を一発で把握 */}
           <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
             <p className="text-base font-bold text-slate-600 mb-3 text-center">評価スコア</p>
-            <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex flex-col gap-4 items-center">
               <div className="w-56 flex-shrink-0">
                 {radarData && (
                   <Radar data={radarData} options={{
