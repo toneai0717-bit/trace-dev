@@ -33,7 +33,7 @@ interface EvaluationResult {
 }
 
 export default function EvaluatePage() {
-  const [urls, setUrls] = useState<string[]>(["", "", ""]);
+  const [urls, setUrls] = useState<string[]>(["", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<EvaluationResult | null>(null);
   const [error, setError] = useState("");
