@@ -37,11 +37,14 @@ export default function EvaluatePage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<EvaluationResult | null>(null);
   const [error, setError] = useState("");
+  const [showDetail, setShowDetail] = useState(false);
 
   const extractId = (url: string) => {
     const match = url.match(/\/report\/([a-f0-9-]{36})/);
     return match ? match[1] : null;
   };
+
+  const validCount = urls.map(extractId).filter(Boolean).length;
 
   const handleEvaluate = async () => {
     setError("");
@@ -87,13 +90,15 @@ export default function EvaluatePage() {
         {/* 入力エリア */}
         {!result && (
           <div className="bg-white rounded-2xl p-5 border border-slate-100 space-y-4">
-            <h1 className="text-base font-black text-slate-800">複数シミュレーション 統合評価</h1>
-            <p className="text-xs text-slate-500 leading-relaxed">候補者が受けたシミュレーションのレポートURLを入力してください。3〜4件で統合評価・採用推奨度を生成します。</p>
+            <div>
+              <h1 className="text-base font-black text-slate-800 mb-1">複数シミュレーション 統合評価</h1>
+              <p className="text-xs text-slate-500 leading-relaxed">候補者が受けたシミュレーションのレポートURLを入力してください。3〜4件で統合評価・採用推奨度を生成します。</p>
+            </div>
 
             <div className="space-y-3">
               {urls.map((url, i) => (
                 <div key={i} className="flex gap-2 items-center">
-                  <span className="text-xs font-bold text-slate-400 w-6">{i + 1}</span>
+                  <span className="text-xs font-bold text-slate-400 w-4">{i + 1}</span>
                   <input
                     type="text"
                     value={url}
@@ -109,15 +114,14 @@ export default function EvaluatePage() {
               ))}
             </div>
 
-
             {error && <p className="text-xs text-red-500">{error}</p>}
 
             <button
               onClick={handleEvaluate}
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-300 text-white rounded-xl py-3 font-bold transition-colors text-sm"
+              disabled={loading || validCount < 3}
+              className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl py-3 font-bold transition-colors text-sm"
             >
-              {loading ? "統合評価を生成中..." : "統合評価する"}
+              {loading ? "統合評価を生成中..." : validCount < 3 ? `あと${3 - validCount}件必要です` : "統合評価する"}
             </button>
           </div>
         )}
@@ -125,9 +129,9 @@ export default function EvaluatePage() {
         {/* 結果 */}
         {result && (
           <>
-            {/* 各シミュレーション概要 */}
+            {/* 受験シミュレーション一覧 */}
             <div className="bg-white rounded-2xl p-5 border border-slate-100">
-              <h2 className="text-sm font-bold text-slate-700 mb-3">受験シミュレーション一覧</h2>
+              <h2 className="text-xs font-bold text-slate-400 mb-3">受験シミュレーション</h2>
               <div className="space-y-2">
                 {result.reports.map((r, i) => (
                   <div key={i} className="flex items-center justify-between bg-slate-50 rounded-xl px-3 py-2">
@@ -145,38 +149,53 @@ export default function EvaluatePage() {
               </div>
             </div>
 
-            {/* 最終推奨度 */}
+            {/* 採用推奨度 */}
             <div className={`rounded-2xl p-5 border-2 ${getRecommendationColor(result.finalRecommendation)}`}>
-              <h2 className="text-xs font-bold mb-1 opacity-70">最終採用推奨度</h2>
+              <h2 className="text-xs font-bold mb-1 opacity-70">採用推奨度</h2>
               <p className="text-sm font-bold leading-relaxed">{result.finalRecommendation}</p>
             </div>
 
-            {/* 統合評価 */}
+            {/* 総合評価・人物像 */}
             <div className="bg-white rounded-2xl p-5 border border-slate-100 space-y-4">
               <div>
-                <h2 className="text-xs font-bold text-violet-500 mb-1">総合所見</h2>
+                <h2 className="text-xs font-bold text-violet-500 mb-1">総合評価</h2>
                 <p className="text-sm text-slate-700 leading-relaxed">{result.overall}</p>
               </div>
               <div>
                 <h2 className="text-xs font-bold text-violet-500 mb-1">人物像</h2>
                 <p className="text-sm text-slate-700 leading-relaxed">{result.personality}</p>
               </div>
-              <div>
-                <h2 className="text-xs font-bold text-emerald-500 mb-1">判断の根底にある価値観・強み</h2>
-                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{result.consistentStrengths}</p>
-              </div>
-              <div>
-                <h2 className="text-xs font-bold text-amber-500 mb-1">判断の癖・課題・懸念</h2>
-                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{result.consistentWeaknesses}</p>
-              </div>
-              <div>
-                <h2 className="text-xs font-bold text-slate-400 mb-1">評価の信頼性</h2>
-                <p className="text-sm text-slate-500 leading-relaxed">{result.reliability}</p>
-              </div>
+            </div>
+
+            {/* 詳細フィードバック */}
+            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+              <button
+                onClick={() => setShowDetail(!showDetail)}
+                className="w-full px-5 py-4 flex items-center justify-between text-left"
+              >
+                <span className="text-sm font-bold text-slate-700">詳細フィードバック</span>
+                <span className="text-slate-400 text-lg">{showDetail ? "▲" : "▼"}</span>
+              </button>
+              {showDetail && (
+                <div className="px-5 pb-5 space-y-4 border-t border-slate-100 pt-4">
+                  <div>
+                    <h3 className="text-xs font-bold text-emerald-500 mb-1">判断の根底にある価値観・強み</h3>
+                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{result.consistentStrengths}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold text-amber-500 mb-1">判断の癖・課題・懸念</h3>
+                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{result.consistentWeaknesses}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-400 mb-1">評価の信頼性</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed">{result.reliability}</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <button
-              onClick={() => { setResult(null); setUrls(["", "", ""]); }}
+              onClick={() => { setResult(null); setUrls(["", "", "", ""]); setShowDetail(false); }}
               className="w-full bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-xl py-3 font-semibold transition-colors text-sm"
             >
               別の候補者を評価する
