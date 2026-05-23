@@ -943,19 +943,19 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                 onClick={() => setSimType("email")}
                 className={`flex-1 py-3 rounded-xl text-sm font-bold border transition-colors ${simType === "email" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"}`}
               >
-                📧 メール対応
+                メール対応
               </button>
               <button
                 onClick={() => setSimType("data")}
                 className={`flex-1 py-3 rounded-xl text-sm font-bold border transition-colors ${simType === "data" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"}`}
               >
-                📊 数字分析
+                数字分析
               </button>
               <button
                 onClick={() => setSimType("priority")}
                 className={`flex-1 py-3 rounded-xl text-sm font-bold border transition-colors ${simType === "priority" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"}`}
               >
-                📋 優先順位
+                優先順位
               </button>
             </div>
 
