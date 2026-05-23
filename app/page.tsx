@@ -411,12 +411,22 @@ const RECOMMENDATION_COLOR: Record<string, string> = {
   "非推奨": "bg-red-50 border-red-400 text-red-800",
 };
 
+function parseBold(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) =>
+    part.startsWith("**") && part.endsWith("**")
+      ? <strong key={i} className="font-bold">{part.slice(2, -2)}</strong>
+      : part
+  );
+}
+
 function renderMarkdown(text: string) {
   const lines = text.split("\n");
   const result: React.ReactNode[] = [];
   let i = 0;
   while (i < lines.length) {
     const line = lines[i];
+    // テーブル
     if (line.includes("|") && lines[i + 1]?.match(/^\|[-| :]+\|/)) {
       const headers = line.split("|").filter((_, idx, arr) => idx > 0 && idx < arr.length - 1).map(h => h.trim());
       i += 2;
@@ -441,8 +451,29 @@ function renderMarkdown(text: string) {
           </table>
         </div>
       );
+    // 区切り線
+    } else if (line.trim() === "---") {
+      result.push(<hr key={i} className="border-slate-200 my-2" />);
+      i++;
+    // 空行
+    } else if (line.trim() === "") {
+      result.push(<div key={i} className="h-2" />);
+      i++;
+    // 番号付きタスク行（①②③など or 【】を含む行）
+    } else if (/^[①②③④⑤⑥⑦⑧⑨⑩]/.test(line.trim()) || (line.includes("【") && line.includes("】") && !line.startsWith("　"))) {
+      result.push(
+        <p key={i} className="font-semibold text-slate-800 mt-3 mb-1">
+          {parseBold(line)}
+        </p>
+      );
+      i++;
+    // 通常行
     } else {
-      result.push(<p key={i} className="whitespace-pre-wrap">{line}</p>);
+      result.push(
+        <p key={i} className="text-slate-700 leading-relaxed">
+          {parseBold(line)}
+        </p>
+      );
       i++;
     }
   }
