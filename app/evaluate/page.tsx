@@ -2,6 +2,35 @@
 
 import { useState } from "react";
 
+function renderBulletText(text: string) {
+  const clean = text.replace(/\*\*/g, "").replace(/[\*\_]/g, "");
+  const lines = clean.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+  return (
+    <ul className="space-y-2">
+      {lines.map((line, i) => {
+        const body = line.replace(/^[-・]\s*/, "");
+        const colonIdx = body.indexOf("：");
+        if (colonIdx > 0 && colonIdx < 20) {
+          const label = body.slice(0, colonIdx);
+          const desc = body.slice(colonIdx + 1);
+          return (
+            <li key={i} className="flex gap-2 text-sm text-slate-700 leading-relaxed">
+              <span className="text-slate-300 mt-1 flex-shrink-0">•</span>
+              <span><span className="font-bold text-slate-800">{label}：</span>{desc}</span>
+            </li>
+          );
+        }
+        return (
+          <li key={i} className="flex gap-2 text-sm text-slate-700 leading-relaxed">
+            <span className="text-slate-300 mt-1 flex-shrink-0">•</span>
+            <span>{body}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 const SIM_TYPE_LABEL: Record<string, string> = {
   email: "メール対応",
   data: "数字分析",
@@ -187,18 +216,18 @@ export default function EvaluatePage() {
                 <span className="text-slate-400 text-lg">{showDetail ? "▲" : "▼"}</span>
               </button>
               {showDetail && (
-                <div className="px-5 pb-5 space-y-4 border-t border-slate-100 pt-4">
+                <div className="px-5 pb-5 space-y-5 border-t border-slate-100 pt-4">
                   <div>
-                    <h3 className="text-xs font-bold text-emerald-500 mb-1">判断の根底にある価値観・強み</h3>
-                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{result.consistentStrengths}</p>
+                    <h3 className="text-xs font-bold text-emerald-500 mb-3">判断の根底にある価値観・強み</h3>
+                    {renderBulletText(result.consistentStrengths)}
                   </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-amber-500 mb-1">判断の癖・課題・懸念</h3>
-                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{result.consistentWeaknesses}</p>
+                  <div className="border-t border-slate-100 pt-4">
+                    <h3 className="text-xs font-bold text-amber-500 mb-3">判断の癖・課題・懸念</h3>
+                    {renderBulletText(result.consistentWeaknesses)}
                   </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-slate-400 mb-1">評価の信頼性</h3>
-                    <p className="text-sm text-slate-500 leading-relaxed">{result.reliability}</p>
+                  <div className="border-t border-slate-100 pt-4">
+                    <h3 className="text-xs font-bold text-slate-400 mb-2">評価の信頼性</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed">{result.reliability.replace(/\*\*/g, "")}</p>
                   </div>
                 </div>
               )}
