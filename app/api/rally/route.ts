@@ -3,7 +3,7 @@ import { createChatWithFallback } from "../_retry";
 
 export async function POST(req: NextRequest) {
   try {
-    const { aiRole, firstMsg, messages, chatLogs, rallyCount } = await req.json();
+    const { aiRole, firstMsg, messages, chatLogs, rallyCount, simType = "email" } = await req.json();
 
     const claudeMessages: { role: "user" | "assistant"; content: string }[] = [];
     let skippedFirst = false;
@@ -24,7 +24,26 @@ export async function POST(req: NextRequest) {
       claudeMessages.push({ role: "user", content: lastAction });
     }
 
-    const system = `あなたは「${aiRole}」です。ビジネスの現場でプレイヤーと交渉・対話する相手キャラクターを演じてください。
+    const isData = simType === "data";
+
+    const system = isData
+      ? `あなたは数字分析シミュレーションの進行役です。
+
+【シナリオ概要】
+${firstMsg}
+
+現在${rallyCount}回目のやり取りです（最低3回、最大4回）。
+
+【新情報追加のルール】
+- プレイヤーの判断を受けて、状況を変化させる新情報を追加する
+- 新情報は数値・事実ベースで具体的に（例：「主要顧客のABC社が来月から発注量を30%削減する方針が判明」）
+- プレイヤーの判断が正しかったかどうかは評価しない。ただ状況を変化させる
+- 最後に「この新情報を踏まえて、あなたはどう動きますか？」と問いかける
+- 【新情報】というラベルで始める
+
+以下のタグで返してください：
+<REPLY>新情報と問いかけ</REPLY>`
+      : `あなたは「${aiRole}」です。ビジネスの現場でプレイヤーと交渉・対話する相手キャラクターを演じてください。
 
 【キャラクター設定】
 - 自社・自部門の利益を最優先するプロフェッショナル

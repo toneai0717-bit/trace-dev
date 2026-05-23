@@ -451,7 +451,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       const res = await fetch("/api/init", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jd }),
+        body: JSON.stringify({ jd, simType }),
       });
       const data = await res.json();
 
@@ -539,6 +539,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
           messages: newMessages,
           chatLogs: newLogs,
           rallyCount: newCount,
+          simType,
         }),
       });
       const data = await res.json();
