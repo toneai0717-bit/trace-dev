@@ -646,10 +646,12 @@ AIの拡大など急激に増加してるデータを管理するインフラで
         }),
       });
       const data = await res.json();
-      if (data.reply) {
-        setConsultLogs(prev => [...prev, { role, question: consultQuestion, reply: data.reply }]);
-        setConsultQuestion("");
+      if (!res.ok || !data.reply) {
+        showToast("相談に失敗しました。もう一度お試しください。");
+        return;
       }
+      setConsultLogs(prev => [...prev, { role, question: consultQuestion, reply: data.reply }]);
+      setConsultQuestion("");
     } catch {
       showToast("通信エラーが発生しました");
     } finally {
@@ -1377,7 +1379,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
               やり取りを確認
             </button>
             <button
-              onClick={() => { setScreen("setup"); setJd(""); setMessages([]); setChatLogs([]); setRallyCount(0); setAnalysis(null); setSimConfig(null); setError(""); setShowDetail(false); setReportUrl(""); setUrlCopied(false); }}
+              onClick={() => { setScreen("setup"); setJd(""); setMessages([]); setChatLogs([]); setRallyCount(0); setAnalysis(null); setSimConfig(null); setError(""); setShowDetail(false); setReportUrl(""); setUrlCopied(false); setAction(""); setIntent(""); setChatTab("sim"); setConsultLogs([]); setConsultQuestion(""); setSuggesting(false); }}
               className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-xl py-3 font-semibold transition-colors text-sm"
             >
               もう一度

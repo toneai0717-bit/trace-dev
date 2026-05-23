@@ -37,7 +37,7 @@ ${scoreItems}
 ※隣接する点数（例：6と7）は「具体性・根拠の有無」で明確に区別すること
 
 以下のタグで出力してください（各フィールドは簡潔に）：
-<SCORES>評価項目の順番通りにスコアをカンマ区切りで（例：${labels.map(() => "数値").join(",")}）</SCORES>
+<SCORES>評価項目の順番通りにスコアをカンマ区切りで、必ず${labels.length}個の数値のみ出力する（例：${labels.map(() => "数値").join(",")}）</SCORES>
 <OVERALL>総合評価コメント（2文）</OVERALL>
 <HIRING_RECOMMENDATION>以下の基準に従って判定し、判定結果とその理由を1文で出力する。
 ・強く推奨：平均スコア7点以上 かつ 意図が戦略的で行動と一致している場面が多い
@@ -67,10 +67,16 @@ ${scoreItems}
     };
 
     const scoresRaw = extract("SCORES");
-    const scores = scoresRaw
+    const parsedScores = scoresRaw
       .split(",")
-      .map((s) => Math.min(Number(s.trim()), 10))
+      .map((s) => Math.min(Math.max(Number(s.trim()), 0), 10))
+      .filter((n) => !isNaN(n))
       .slice(0, labels.length);
+    // 不足分を0で補完して必ずlabels.lengthと一致させる
+    const scores = [
+      ...parsedScores,
+      ...Array(Math.max(0, labels.length - parsedScores.length)).fill(0),
+    ];
 
     return NextResponse.json({
       scores,

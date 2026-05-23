@@ -183,8 +183,9 @@ export async function POST(req: NextRequest) {
 
     const scoreLabels = extract("SCORE_LABELS")
       .split(",")
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
+      .map((s) => s.trim().replace(/\*\*/g, "").replace(/[\*\_\`]/g, ""))
+      .filter((s) => s.length > 0)
+      .slice(0, 6);
 
     const result = {
       title: extract("TITLE"),
@@ -192,7 +193,7 @@ export async function POST(req: NextRequest) {
       aiRole: extract("AI_ROLE"),
       targetPersona: extract("TARGET_PERSONA"),
       firstMsg: extract("FIRST_MSG"),
-      scoreLabels: scoreLabels.length >= 3 ? scoreLabels : ["論理思考力", "交渉力", "状況適応力", "主体性", "ストレス耐性"],
+      scoreLabels: scoreLabels.length >= 3 ? scoreLabels : ["論理思考力", "交渉力", "状況適応力", "主体性", "ストレス耐性", "実行力"],
     };
 
     if (!result.title || !result.firstMsg) {
