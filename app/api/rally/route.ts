@@ -26,8 +26,27 @@ export async function POST(req: NextRequest) {
 
     const isData = simType === "data";
     const isPriority = simType === "priority";
+    const isReport = simType === "report";
 
-    const system = isPriority
+    const system = isReport
+      ? `あなたは「${aiRole}」です。プレイヤー（戸根）から報告を受けた上司として応答してください。
+
+【シナリオ概要】
+${firstMsg}
+
+現在${rallyCount}回目のやり取りです（最低3回、最大4回）。
+
+【上司としての応答ルール】
+- プレイヤーの報告内容を受けて、鋭い質問・追加確認・修正要求を1〜2点出す
+- 「それで十分か？」「根拠は？」「他の選択肢は考えたか？」など、報告の穴を突く
+- 感情的にならないが、プレッシャーは与える
+- 全体で300文字以内
+- 最後に「この点についてどう答える？」と1行で問いかける
+- ビジネス口語調で自然に（メール形式不要）
+
+以下のタグで返してください：
+<REPLY>上司の追加質問・確認</REPLY>`
+      : isPriority
       ? `あなたは優先順位・タスク管理シミュレーションの進行役です。
 
 【シナリオ概要】

@@ -7,8 +7,24 @@ export async function POST(req: NextRequest) {
 
     const isData = simType === "data";
     const isPriority = simType === "priority";
+    const isReport = simType === "report";
 
-    const system = isPriority
+    const system = isReport
+      ? `求人票を元に、上司への報告・提案シミュレーションのシナリオを設計してください。
+
+【重要なルール】
+- プレイヤー = 求人票の職種の候補者（評価される側）
+- プレイヤーの名前は「戸根」とする
+- AIは「上司」または「経営層」の役を演じる
+- プレイヤーは状況・データを与えられ、上司に報告・提案を行う
+
+【シナリオのリアリティ基準】
+- 会社名・人物名は実在しそうな具体的な名前をつける
+- 報告対象のデータ・状況は具体的な数値を含む
+- ゴールは「特定の上司・経営層に対して、何かを伝え、合意・承認を得る」こと
+- FIRST_MSGは「上司から『状況を整理して報告してくれ』という依頼」として書く
+- シナリオ冒頭に「今日は○曜日」を明記する`
+      : isPriority
       ? `求人票を元に、優先順位・タスク管理シミュレーションのシナリオを設計してください。
 
 【重要なルール】
@@ -75,7 +91,33 @@ export async function POST(req: NextRequest) {
 【適応系】状況適応力, 変化対応力, ストレス耐性, 曖昧耐性
 </SCORE_LABELS>`;
 
-    const userContent = isPriority ? priorityUserContent : isData
+    const reportUserContent = `求人票：${jd}
+
+以下のタグで出力してください：
+
+<TITLE>シミュレーションタイトル（20字以内）</TITLE>
+<CONTEXT>以下の形式で出力（各項目は1〜2文、具体的な数値・固有名詞を含めて）：
+<p><span class="label">【状況】</span>具体的な状況説明（会社名・役割・背景を含む）</p>
+<p><span class="label">【データ】</span>報告に関係する具体的な数値・事実</p>
+<p><span class="label">【課題】</span>報告が必要になった背景・問題</p>
+<p><span class="label">【ミッション】</span>誰に何を報告し、何を合意・承認してもらうか</p>
+</CONTEXT>
+<AI_ROLE>上司の具体的な氏名・役職（例：営業本部長 山田健一）</AI_ROLE>
+<TARGET_PERSONA>JDが求める人物像（1〜2文）</TARGET_PERSONA>
+<FIRST_MSG>上司からプレイヤーへの報告依頼メッセージ。以下の状況・データを含めて書く：
+- 今起きている状況・問題の背景
+- 具体的な数値（売上・件数・コスト・達成率など）
+- 「この件、整理して報告してくれ」という依頼
+- 上司の温度感・プレッシャーが伝わるリアルな口調で（7行以内）</FIRST_MSG>
+<SCORE_LABELS>このJDの職種・人物像に合わせて、以下のコンピテンシーバンクから候補者評価に最も重要な軸をちょうど6個選び、カンマ区切りで列挙する。バンク外の造語は使わないこと。
+
+【思考系】論理思考力, 概念化力, 戦略的思考, 分析力, 本質把握力, 仮説構築力
+【対人系】傾聴力, 共感力, 影響力, 交渉力, 調整力, 信頼構築力, 巻き込み力, 提案力
+【実行系】主体性, 推進力, 決断力, 粘り強さ, 目標達成力, スピード感
+【適応系】状況適応力, 変化対応力, ストレス耐性, 曖昧耐性
+</SCORE_LABELS>`;
+
+    const userContent = isReport ? reportUserContent : isPriority ? priorityUserContent : isData
       ? `求人票：${jd}
 
 以下のタグで出力してください：

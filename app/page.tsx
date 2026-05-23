@@ -517,7 +517,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   const [showContext, setShowContext] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
-  const [simType, setSimType] = useState<"email" | "data" | "priority">("email");
+  const [simType, setSimType] = useState<"email" | "data" | "priority" | "report">("email");
   const [toast, setToast] = useState("");
   const [heroStep, setHeroStep] = useState(0);
   const [suggesting, setSuggesting] = useState(false);
@@ -636,7 +636,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
     setRallyCount(newCount);
 
     setLoading(true);
-    setLoadingMsg(simType === "data" ? "次の情報を取得中..." : simType === "priority" ? "状況を更新中..." : "相手が返信を作成中...");
+    setLoadingMsg(simType === "data" ? "次の情報を取得中..." : simType === "priority" ? "状況を更新中..." : simType === "report" ? "上司が確認中..." : "相手が返信を作成中...");
 
     try {
       const res = await fetch("/api/rally", {
@@ -957,6 +957,12 @@ AIの拡大など急激に増加してるデータを管理するインフラで
               >
                 優先順位
               </button>
+              <button
+                onClick={() => setSimType("report")}
+                className={`flex-1 py-3 rounded-xl text-sm font-bold border transition-colors ${simType === "report" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"}`}
+              >
+                報告
+              </button>
             </div>
 
             {/* 職種選択 */}
@@ -968,7 +974,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                   onClick={() => {
                     const next = selectedJob === job.label ? null : job.label;
                     setSelectedJob(next);
-                    if (simType === "data" || simType === "priority") {
+                    if (simType === "data" || simType === "priority" || simType === "report") {
                       setJd(next ? job.dataJd : "");
                     }
                   }}
@@ -1056,7 +1062,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                 onClick={() => setChatTab("sim")}
                 className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${chatTab === "sim" ? "bg-sky-500 text-white" : "bg-white border border-sky-200 text-sky-500 hover:bg-sky-50"}`}
               >
-                {simType === "data" ? "データ確認" : simType === "priority" ? "タスク状況" : "交渉チャット"}
+                {simType === "data" ? "データ確認" : simType === "priority" ? "タスク状況" : simType === "report" ? "報告ログ" : "交渉チャット"}
               </button>
               <button
                 onClick={() => setChatTab("boss")}
@@ -1074,12 +1080,12 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                     const isLastAi = msg.role === "ai" && messages.slice(i + 1).every(m => m.role !== "ai");
                     return (
                     <div key={i} ref={isLastAi ? lastAiMsgRef : null} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                      <div className={`${msg.role === "ai" && (simType === "data" || simType === "priority") ? "w-full" : "max-w-[80%]"} rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                      <div className={`${msg.role === "ai" && (simType === "data" || simType === "priority" || simType === "report") ? "w-full" : "max-w-[80%]"} rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                         msg.role === "ai"
                           ? "bg-slate-50 border border-slate-100 text-slate-700 rounded-tl-sm"
                           : "bg-blue-600 text-white rounded-tr-sm whitespace-pre-wrap"
                       }`}>
-                        {msg.role === "ai" && (simType === "data" || simType === "priority") ? renderMarkdown(msg.text) : msg.text}
+                        {msg.role === "ai" && (simType === "data" || simType === "priority" || simType === "report") ? renderMarkdown(msg.text) : msg.text}
                         {msg.intent && (
                           <span className="block text-xs mt-2 pt-2 border-t border-white/20 text-blue-100 italic">
                             戦略: {msg.intent}
@@ -1127,13 +1133,13 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                   </div>
                   <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-3">
                     <div className="flex-1">
-                      <label className="block text-xs font-bold text-slate-400 mb-1">{simType === "data" ? "アクションプラン" : simType === "priority" ? "優先順位と対応方針" : "返信内容（アクション）"}</label>
+                      <label className="block text-xs font-bold text-slate-400 mb-1">{simType === "data" ? "アクションプラン" : simType === "priority" ? "優先順位と対応方針" : simType === "report" ? "報告内容" : "返信内容（アクション）"}</label>
                       <textarea
                         value={action}
                         onChange={(e) => setAction(e.target.value)}
                         rows={3}
                         className="w-full border border-slate-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-blue-400 transition-colors"
-                        placeholder={simType === "data" ? "アクションプランを書いてください..." : simType === "priority" ? "何をどの順番でやるか書いてください..." : "相手へのメッセージを書いてください..."}
+                        placeholder={simType === "data" ? "アクションプランを書いてください..." : simType === "priority" ? "何をどの順番でやるか書いてください..." : simType === "report" ? "報告内容を書いてください..." : "相手へのメッセージを書いてください..."}
                       />
                     </div>
                     <div className="flex-1">
@@ -1143,7 +1149,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                         onChange={(e) => setIntent(e.target.value)}
                         rows={3}
                         className="w-full border border-violet-200 bg-violet-50 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-violet-400 transition-colors"
-                        placeholder={simType === "data" ? "このアクションの狙いを書いてください..." : simType === "priority" ? "なぜその順番にしたか書いてください..." : "このメッセージの狙いを書いてください..."}
+                        placeholder={simType === "data" ? "このアクションの狙いを書いてください..." : simType === "priority" ? "なぜその順番にしたか書いてください..." : simType === "report" ? "なぜその伝え方にしたか書いてください..." : "このメッセージの狙いを書いてください..."}
                       />
                     </div>
                   </div>
