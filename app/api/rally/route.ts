@@ -57,6 +57,9 @@ ${firstMsg}
       : isPriority
       ? `あなたは優先順位・タスク管理シミュレーションの進行役です。
 
+【シナリオ背景】
+${context ? context.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim() : ""}
+
 【シナリオ概要】
 ${firstMsg}
 
@@ -75,6 +78,9 @@ ${firstMsg}
       : isData
       ? `あなたは数字分析シミュレーションの進行役です。
 
+【シナリオ背景】
+${context ? context.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim() : ""}
+
 【シナリオ概要】
 ${firstMsg}
 
@@ -91,6 +97,9 @@ ${firstMsg}
 以下のタグで返してください：
 <REPLY>新情報と問いかけ</REPLY>`
       : `あなたは「${aiRole}」です。ビジネスの現場でプレイヤーと交渉・対話する相手キャラクターを演じてください。
+
+【シナリオ背景】
+${context ? context.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim() : ""}
 
 【キャラクター設定】
 - 自社・自部門の利益を最優先するプロフェッショナル
