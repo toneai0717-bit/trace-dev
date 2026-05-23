@@ -742,6 +742,8 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       track("simulation_completed");
       setAnalysis(data);
       setScreen("result");
+      setReportUrl("");
+      setUrlCopied(false);
       setLoading(false);
     } catch (e) {
       showToast("通信エラーが発生しました。もう一度お試しください。");
@@ -775,6 +777,8 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       scoreLabels: ["コスト交渉力", "リスク管理力", "関係構築力", "数値分析力", "戦略立案力"],
     });
     setScreen("result");
+    setReportUrl("");
+    setUrlCopied(false);
   }
 
   function getRecommendationKey(rec: string) {
