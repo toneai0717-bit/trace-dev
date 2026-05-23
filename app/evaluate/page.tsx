@@ -107,6 +107,16 @@ export default function EvaluatePage() {
                       next[i] = e.target.value;
                       setUrls(next);
                     }}
+                    onPaste={(e) => {
+                      const pasted = e.clipboardData.getData("text");
+                      const lines = pasted.split(/[\n\s]+/).map(s => s.trim()).filter(s => s.length > 0);
+                      if (lines.length > 1) {
+                        e.preventDefault();
+                        const next = [...urls];
+                        lines.slice(0, 4).forEach((line, j) => { next[i + j < 4 ? i + j : 3] = line; });
+                        setUrls(next);
+                      }
+                    }}
                     placeholder="https://trace-dev.vercel.app/report/..."
                     className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:border-blue-400 transition-colors"
                   />
