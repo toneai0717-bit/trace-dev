@@ -525,6 +525,9 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   const [consultQuestion, setConsultQuestion] = useState("");
   const [consultLoading, setConsultLoading] = useState(false);
   const [consultLogs, setConsultLogs] = useState<{ role: "boss"; question: string; reply: string }[]>([]);
+  const [reportUrl, setReportUrl] = useState("");
+  const [urlCopied, setUrlCopied] = useState(false);
+  const [savingReport, setSavingReport] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
   const lastAiMsgRef = useRef<HTMLDivElement>(null);
 
@@ -1324,11 +1327,63 @@ AIの拡大など急激に増加してるデータを管理するインフラで
               やり取りを確認
             </button>
             <button
-              onClick={() => { setScreen("setup"); setJd(""); setMessages([]); setChatLogs([]); setRallyCount(0); setAnalysis(null); setSimConfig(null); setError(""); setShowDetail(false); }}
+              onClick={() => { setScreen("setup"); setJd(""); setMessages([]); setChatLogs([]); setRallyCount(0); setAnalysis(null); setSimConfig(null); setError(""); setShowDetail(false); setReportUrl(""); setUrlCopied(false); }}
               className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-xl py-3 font-semibold transition-colors text-sm"
             >
               もう一度
             </button>
+          </div>
+
+          {/* URL発行 */}
+          <div className="mt-3">
+            {!reportUrl ? (
+              <button
+                onClick={async () => {
+                  setSavingReport(true);
+                  try {
+                    const res = await fetch("/api/save-report", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        simType,
+                        title: simConfig?.title,
+                        context: simConfig?.context,
+                        analysis,
+                        scoreLabels: simConfig?.scoreLabels,
+                        chatLogs,
+                      }),
+                    });
+                    const data = await res.json();
+                    if (data.id) {
+                      setReportUrl(`${window.location.origin}/report/${data.id}`);
+                    }
+                  } catch {
+                    showToast("URL発行に失敗しました");
+                  } finally {
+                    setSavingReport(false);
+                  }
+                }}
+                disabled={savingReport}
+                className="w-full bg-indigo-500 hover:bg-indigo-400 disabled:bg-indigo-300 text-white rounded-xl py-3 font-semibold transition-colors text-sm"
+              >
+                {savingReport ? "発行中..." : "🔗 共有URLを発行する"}
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={reportUrl}
+                  readOnly
+                  className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-600 bg-slate-50"
+                />
+                <button
+                  onClick={() => { navigator.clipboard.writeText(reportUrl); setUrlCopied(true); setTimeout(() => setUrlCopied(false), 2000); }}
+                  className="bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl px-4 py-2 text-xs font-bold transition-colors"
+                >
+                  {urlCopied ? "✓ コピー" : "コピー"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
