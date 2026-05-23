@@ -973,7 +973,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                 onClick={() => setChatTab("sim")}
                 className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${chatTab === "sim" ? "bg-sky-500 text-white" : "bg-white border border-sky-200 text-sky-500 hover:bg-sky-50"}`}
               >
-                交渉チャット
+                {simType === "data" ? "データ確認" : "交渉チャット"}
               </button>
               <button
                 onClick={() => setChatTab("boss")}
@@ -991,7 +991,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
                     const isLastAi = msg.role === "ai" && messages.slice(i + 1).every(m => m.role !== "ai");
                     return (
                     <div key={i} ref={isLastAi ? lastAiMsgRef : null} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                      <div className={`${msg.role === "ai" && simType === "data" ? "w-full" : "max-w-[80%]"} rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                         msg.role === "ai"
                           ? "bg-slate-50 border border-slate-100 text-slate-700 rounded-tl-sm"
                           : "bg-blue-600 text-white rounded-tr-sm whitespace-pre-wrap"
