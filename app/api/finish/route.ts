@@ -69,7 +69,8 @@ ${scoreItems}
     const scoresRaw = extract("SCORES");
     const scores = scoresRaw
       .split(",")
-      .map((s) => Math.min(Number(s.trim()), 10));
+      .map((s) => Math.min(Number(s.trim()), 10))
+      .slice(0, labels.length);
 
     return NextResponse.json({
       scores,
