@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { SIM_TYPE_LABEL } from "../../constants";
 import { Radar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -102,11 +103,7 @@ export default function ReportPage() {
     plugins: { legend: { display: false } },
   };
 
-  const simTypeLabel =
-    report.sim_type === "data" ? "数字分析"
-    : report.sim_type === "priority" ? "優先順位"
-    : report.sim_type === "report" ? "報告"
-    : "メール対応";
+  const simTypeLabel = SIM_TYPE_LABEL[report.sim_type] ?? "メール対応";
 
   return (
     <div className="min-h-screen bg-slate-50">

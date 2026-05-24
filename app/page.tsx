@@ -1,531 +1,20 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
-import DOMPurify from "dompurify";
+import { useState, useRef, useEffect } from "react";
 import { track } from "@vercel/analytics";
-import { Radar } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  Filler,
-  Tooltip,
-} from "chart.js";
-
-ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip);
-
-type Screen = "top" | "setup" | "sim" | "result";
-
-interface SimConfig {
-  title: string;
-  context: string;
-  aiRole: string;
-  targetPersona: string;
-  firstMsg: string;
-  scoreLabels: string[];
-}
-
-interface ChatLog {
-  action: string;
-  intent: string;
-}
-
-interface AnalysisResult {
-  scores: number[];
-  overall: string;
-  personality: string;
-  detail: string;
-  critical_point: string;
-  best_approach: string;
-  hiring_recommendation: string;
-  onboarding_scenario: string;
-  risk_points: string;
-  interview_questions: string;
-}
+import { Screen, SimConfig, ChatLog, AnalysisResult } from "./types";
+import TopScreen from "./components/TopScreen";
+import SetupScreen from "./components/SetupScreen";
+import SimScreen from "./components/SimScreen";
+import ResultScreen from "./components/ResultScreen";
 
 const DEFAULT_SCORE_LABELS = ["論理思考力", "交渉力", "状況適応力", "主体性", "ストレス耐性"];
+const DRAFT_ACTION_KEY = "trace_draft_action";
+const DRAFT_INTENT_KEY = "trace_draft_intent";
 
-const JOB_TEMPLATES: {
-  label: string;
-  dataJd: string;
-  patterns: { label: string; jd: string }[];
-}[] = [
-  {
-    label: "営業",
-    dataJd: `【職種】法人営業
-【ミッション】担当エリア・担当顧客の売上目標達成と既存顧客の維持・拡大
-【業務内容】
-・担当顧客への定期訪問・提案活動
-・新規顧客の開拓とアポ獲得
-・月次・四半期の売上数字管理と上司への報告
-・商談進捗の管理（パイプライン管理）
-【求める人物像】
-・数字に責任を持ち、目標から逆算して行動できる方
-・顧客の課題を正確に把握し、適切な提案ができる方
-・結果が出ないときでも原因を分析し、行動を変えられる方`,
-    patterns: [
-      {
-        label: "新規顧客への提案",
-        jd: `【職種】法人営業（新規開拓）
-【ミッション】未開拓企業に対して自社製品・サービスを提案し、受注につなげる。
-【業務内容】
-・テレアポ・訪問による新規開拓
-・顧客課題のヒアリングと提案資料作成
-・価格・条件交渉、クロージング
-【求める人物像】
-・自ら動けるハングリー精神のある方
-・顧客の課題を引き出し、的確な提案ができる方
-・粘り強く交渉でき、数字にコミットできる方`,
-      },
-      {
-        label: "既存顧客アップセル",
-        jd: `【職種】法人営業（既存顧客担当）
-【ミッション】既存顧客との関係を深め、追加提案・契約拡大を実現する。
-【業務内容】
-・担当顧客の定期訪問・課題ヒアリング
-・利用状況の分析と上位プランへの提案
-・更新時の条件交渉・継続率向上
-【求める人物像】
-・顧客との長期的な信頼関係を築ける方
-・潜在ニーズを引き出し、タイミングよく提案できる方
-・社内と顧客の間で調整力を発揮できる方`,
-      },
-      {
-        label: "クレーム対応",
-        jd: `【職種】カスタマーサクセス／営業（クレーム対応）
-【ミッション】顧客からのクレーム・不満を適切に処理し、関係維持・改善につなげる。
-【業務内容】
-・クレーム内容のヒアリングと原因分析
-・社内関係部門との連携・対応策立案
-・顧客への謝罪・再発防止策の説明と合意形成
-【求める人物像】
-・感情的な場面でも冷静に対応できる方
-・顧客の立場に立ちながら、会社の方針を守れる方
-・迅速に社内を動かし、解決に導ける方`,
-      },
-      {
-        label: "社内調整・根回し",
-        jd: `【職種】営業（社内折衝・プロジェクト推進）
-【ミッション】顧客への提案を実現するために、社内の各部門と調整・合意形成を行う。
-【業務内容】
-・顧客要望を社内に展開し、実現可能性の確認
-・開発・製造・法務・経営層への説明と承認取得
-・スケジュール・コストの社内交渉
-【求める人物像】
-・社内の利害関係者を動かせる説得力のある方
-・顧客と社内の双方に誠実に向き合える方
-・根回しと段取りを丁寧に進められる方`,
-      },
-    ],
-  },
-  {
-    label: "購買・調達",
-    dataJd: `【職種】購買・調達
-【ミッション】調達コスト削減・納期遵守率向上・サプライチェーン安定化
-【業務内容】
-・サプライヤーとの価格・納期・品質交渉
-・調達データの月次分析とコスト削減施策の立案・報告
-・リスク管理と代替調達先の確保・開拓
-・社内製造・生産部門との需要調整と調達計画の策定
-【求める人物像】
-・データを読んで問題の本質を特定できる方
-・コスト・品質・納期のトレードオフを判断できる方
-・複数の選択肢を同時に動かせる実行力のある方`,
-    patterns: [
-      {
-        label: "サプライヤー価格交渉",
-        jd: `【職種】購買・調達
-【ミッション】サプライヤーとの価格・納期・品質条件を交渉し、最適な調達を実現する。
-【業務内容】
-・部品・原材料の調達先選定と価格交渉
-・納期短縮・コスト削減・品質改善の同時交渉
-・長期契約条件の交渉と合意
-【求める人物像】
-・コスト・納期・品質の3軸を同時にマネジメントできる方
-・サプライヤーと良好な関係を築きながら自社利益を守れる方
-・データに基づいた論理的な交渉ができる方`,
-      },
-      {
-        label: "新規サプライヤー開拓",
-        jd: `【職種】購買・調達（新規開拓）
-【ミッション】新規サプライヤーを発掘・評価し、安定した調達先を確保する。
-【業務内容】
-・新規サプライヤーの候補選定と初回接触
-・生産能力・品質・価格・リスクの評価
-・試作・評価フェーズの条件交渉と契約締結
-【求める人物像】
-・リスクを正確に評価し、判断できる方
-・初対面の相手と信頼関係を素早く構築できる方
-・社内の品質・製造・法務部門を巻き込める方`,
-      },
-      {
-        label: "緊急調達・トラブル対応",
-        jd: `【職種】購買・調達（緊急対応）
-【ミッション】供給不足・品質問題などのトラブル発生時に、迅速に代替調達を確保する。
-【業務内容】
-・供給遅延・品質不良時の原因確認とサプライヤー交渉
-・代替品・代替サプライヤーの緊急手配
-・社内製造・品質部門との連携と進捗管理
-【求める人物像】
-・プレッシャー下でも冷静に優先順位をつけられる方
-・スピーディーに動き、複数の選択肢を同時に進められる方
-・社内外の関係者と素早く合意形成できる方`,
-      },
-      {
-        label: "社内予算承認",
-        jd: `【職種】購買・調達（社内折衝）
-【ミッション】調達に必要な予算・承認を社内から獲得し、プロジェクトを前進させる。
-【業務内容】
-・調達計画の立案と経営・財務部門への説明
-・コスト根拠・ROIの資料作成と承認取得
-・部門間の優先度調整と予算配分の交渉
-【求める人物像】
-・数値に基づいた説得力のある説明ができる方
-・経営層・財務部門の視点を理解して提案できる方
-・粘り強く社内を動かせる主体性のある方`,
-      },
-    ],
-  },
-  {
-    label: "企画・マーケ",
-    dataJd: `【職種】マーケティング・企画
-【ミッション】施策のROI最大化と予算の最適配分による売上目標達成
-【業務内容】
-・チャネル別（SNS・リスティング・イベント等）の効果測定とデータ分析
-・月次・四半期の予算配分見直しと上長への改善提案
-・KPI（リード数・CVR・CPAなど）の進捗管理と次期計画への反映
-・競合動向の調査と市場トレンドの把握
-【求める人物像】
-・数字から仮説を立て、施策に落とし込める方
-・限られた予算で最大の成果を出す発想ができる方
-・データと定性情報を組み合わせて判断できる方`,
-    patterns: [
-      {
-        label: "新規事業提案",
-        jd: `【職種】新規事業企画
-【ミッション】新規事業のアイデアを経営層に提案し、承認・予算獲得を実現する。
-【業務内容】
-・市場調査・競合分析・事業計画の立案
-・経営層へのプレゼンテーションと質疑対応
-・承認後の立ち上げ推進とKPI設定
-【求める人物像】
-・論理的かつ熱量を持って提案できる方
-・反対意見に対して冷静に根拠を示せる方
-・不確実な状況でも意思決定・推進できる方`,
-      },
-      {
-        label: "他部門との連携調整",
-        jd: `【職種】マーケティング・企画（社内調整）
-【ミッション】施策を実行するために、複数部門の協力を取り付け、プロジェクトを推進する。
-【業務内容】
-・施策の目的・効果を各部門に説明し、協力を依頼
-・リソース・スケジュールの調整と合意形成
-・進捗管理と問題発生時の迅速な対応
-【求める人物像】
-・相手の立場を理解した上で巻き込める方
-・利害が対立する場面でも着地点を見つけられる方
-・主体的にプロジェクトをドライブできる方`,
-      },
-    ],
-  },
-  {
-    label: "開発・エンジニア",
-    dataJd: `【職種】システム開発・エンジニア／テックリード
-【ミッション】開発プロジェクトの品質・納期・コストの最適化とチームアウトプット最大化
-【業務内容】
-・スプリント単位での開発進捗・品質データの分析と課題特定
-・バグ発生率・テストカバレッジ・デプロイ頻度などの指標管理
-・リソース配分の見直しと優先度判断、技術的負債の可視化
-・障害・遅延発生時の原因分析と対応策立案
-【求める人物像】
-・数字とログから問題を素早く特定できる方
-・技術的負債とスピードのトレードオフを判断できる方
-・チームへの影響を考えながら意思決定できる方`,
-    patterns: [
-      {
-        label: "要件定義の認識合わせ",
-        jd: `【職種】システム開発／エンジニア（要件定義）
-【ミッション】顧客・事業部門の要望を正確に理解し、実現可能な要件として定義する。
-【業務内容】
-・顧客・事業部門へのヒアリングと要件の言語化
-・技術的制約と要望のギャップ調整
-・スコープ・スケジュール・コストの合意形成
-【求める人物像】
-・技術と事業の両方の言語で会話できる方
-・曖昧な要望を整理し、明確化できる方
-・「できない」ではなく「こうすればできる」を提案できる方`,
-      },
-      {
-        label: "仕様変更・納期交渉",
-        jd: `【職種】プロジェクトマネージャー／エンジニア
-【ミッション】開発途中の仕様変更や納期要求に対して、現実的な対応を交渉・合意する。
-【業務内容】
-・仕様変更の影響範囲・工数の見積もりと説明
-・顧客への追加費用・納期変更の交渉
-・チーム内の調整と優先度の再設定
-【求める人物像】
-・技術的な根拠を非技術者にわかりやすく説明できる方
-・顧客の感情に寄り添いながら現実的な落とし所を探れる方
-・チームを守りながら顧客との関係も維持できる方`,
-      },
-    ],
-  },
-  {
-    label: "人事",
-    dataJd: `【職種】人事・HRビジネスパートナー
-【ミッション】採用目標達成・早期離職率改善・組織エンゲージメント向上
-【業務内容】
-・採用数・内定承諾率・定着率・エンゲージメントスコアの月次分析
-・問題部門・問題指標の特定と施策立案・現場へのフィードバック
-・経営層への人事データに基づく提言と施策承認の取得
-・採用チャネル別のコスト・質・スピードの効果測定
-【求める人物像】
-・人事データから組織課題を読み取れる方
-・数字の背景にある人の動きを想像できる方
-・優先度をつけて施策を絞り込める判断力のある方`,
-    patterns: [
-      {
-        label: "採用面談（候補者対応）",
-        jd: `【職種】採用担当・人事
-【ミッション】候補者の能力・志向を正確に見極め、自社への入社を促す面談を実施する。
-【業務内容】
-・候補者の経験・スキル・志向のヒアリング
-・自社の魅力の訴求と条件のすり合わせ
-・懸念払拭と内定承諾に向けたクロージング
-【求める人物像】
-・候補者の本音を引き出せるコミュニケーション力のある方
-・自社と候補者双方にとって最善の判断ができる方
-・誠実さと説得力を両立できる方`,
-      },
-      {
-        label: "社内課題のヒアリング",
-        jd: `【職種】人事・HRビジネスパートナー
-【ミッション】現場マネージャーにヒアリングし、組織・人材課題を特定して解決策を提案する。
-【業務内容】
-・現場マネージャーへの定期ヒアリング
-・組織課題の構造化と優先度整理
-・人事施策の提案と実行支援
-【求める人物像】
-・現場の信頼を獲得し、本音を引き出せる方
-・課題を整理し、経営と現場の橋渡しができる方
-・データと感覚の両方で判断できる方`,
-      },
-    ],
-  },
-  {
-    label: "エージェント",
-    dataJd: `【職種】人材エージェント（キャリアアドバイザー兼リクルーティングアドバイザー）
-【ミッション】担当求人の月内充足・内定承諾率向上・月次売上目標の達成
-【業務内容・業務構造】
-・CA業務：候補者の転職支援（ヒアリング→求人紹介→選考対策→内定承諾フォロー）
-・RA業務：担当企業への求人開拓・選考進捗管理・合否フィードバック受領・充足支援
-・重要：書類選考の合否判断は企業側が行う。エージェントは結果を企業からもらい、候補者に連絡する
-・重要：内定提示・条件提示も企業側から。エージェントは条件を候補者に伝え承諾を促す
-【求める人物像】
-・KPIの構造を理解して改善ポイントを特定できる方
-・数字の変化に敏感で、早期にリカバリー行動がとれる方
-・候補者・企業双方の動向を数値で把握できる方`,
-    patterns: [
-      {
-        label: "候補者へのスカウト提案",
-        jd: `【職種】人材エージェント（キャリアアドバイザー）
-【ミッション】スカウトした候補者に求人の魅力を伝え、転職活動への参加・面接承諾を獲得する。
-【業務内容】
-・候補者のキャリア・志向のヒアリング
-・求人との適合性の説明と魅力訴求
-・懸念払拭と面接設定のクロージング
-【求める人物像】
-・候補者の本音を引き出し、潜在的な転職意欲を喚起できる方
-・求人の本質的な魅力を候補者目線で翻訳できる方
-・押しすぎず引きすぎず、絶妙な距離感でクロージングできる方`,
-      },
-      {
-        label: "企業への求人充足提案",
-        jd: `【職種】人材エージェント（リクルーティングアドバイザー）
-【ミッション】採用が難航している企業に対して、採用条件の見直しや代替案を提案し、充足率を高める。
-【業務内容】
-・採用担当者への現状ヒアリングと課題整理
-・採用要件の緩和・変更の提案と説得
-・代替候補者の提示と条件交渉
-【求める人物像】
-・企業の採用ニーズと市場実態のギャップを正確に伝えられる方
-・採用担当者・現場・経営の三者の利害を調整できる方
-・長期的な信頼関係を築きながら成果にコミットできる方`,
-      },
-      {
-        label: "内定辞退の引き留め交渉",
-        jd: `【職種】人材エージェント（キャリアアドバイザー）
-【ミッション】内定辞退の意向を示した候補者に対して、真の懸念を把握し、翻意または円満な着地を実現する。
-【業務内容】
-・辞退理由の真意のヒアリング
-・懸念点への対応策提示（条件交渉・情報提供）
-・最終意思確認と関係維持
-【求める人物像】
-・感情的な場面でも傾聴を徹底できる方
-・候補者の本音と建前を見抜き、本質的な懸念に対処できる方
-・企業・候補者双方にとって誠実な判断ができる方`,
-      },
-    ],
-  },
-  {
-    label: "コンサル",
-    dataJd: `【職種】経営コンサルタント（戦略・業務改善）
-【ミッション】クライアント企業のKPI改善・収益構造の可視化・施策の優先度整理
-【業務内容】
-・クライアントの売上・コスト・利益率・顧客データなどの経営指標分析
-・問題領域の特定（どの事業・チャネル・顧客セグメントがボトルネックか）
-・改善優先度の整理と施策ロードマップの作成
-・経営会議・ステアリングコミッティでの報告・提言
-【求める人物像】
-・複数の指標を横断して本質的な問題を見つけられる方
-・データから仮説を立て、素早く検証できる方
-・クライアントに「なぜそうなのか」を論理的に説明できる方`,
-    patterns: [
-      {
-        label: "課題提起・提案",
-        jd: `【職種】経営コンサルタント
-【ミッション】クライアント企業に課題を提起し、解決策を提案・承認を得る。
-【業務内容】
-・クライアントへの現状分析結果のプレゼン
-・課題の根本原因の説明と改善提案
-・反論・懸念への対応と合意形成
-【求める人物像】
-・仮説思考で本質的な課題を捉えられる方
-・データと論理で説得できる方
-・クライアントの感情と組織の論理を両方読める方`,
-      },
-      {
-        label: "クライアントへのフィードバック",
-        jd: `【職種】コンサルタント（プロジェクト推進）
-【ミッション】プロジェクト中間報告でクライアントに厳しいフィードバックを伝え、方向修正を合意する。
-【業務内容】
-・進捗状況と課題の報告
-・当初計画からの乖離の説明と原因分析
-・方向修正案の提示と合意形成
-【求める人物像】
-・耳の痛いことを誠実に伝えられる方
-・感情的な反応に動じず、建設的な議論に持ち込める方
-・クライアントの信頼を維持しながら軌道修正できる方`,
-      },
-    ],
-  },
-];
-
-const RECOMMENDATION_COLOR: Record<string, string> = {
-  "強く推奨": "bg-emerald-50 border-emerald-400 text-emerald-800",
-  "推奨": "bg-blue-50 border-blue-400 text-blue-800",
-  "要検討": "bg-amber-50 border-amber-400 text-amber-800",
-  "非推奨": "bg-red-50 border-red-400 text-red-800",
-};
-
-function parseBold(text: string): React.ReactNode {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) =>
-    part.startsWith("**") && part.endsWith("**")
-      ? <strong key={i} className="font-bold">{part.slice(2, -2)}</strong>
-      : part
-  );
-}
-
-function renderMarkdown(text: string) {
-  const lines = text.split("\n");
-  const result: React.ReactNode[] = [];
-  let i = 0;
-  while (i < lines.length) {
-    const line = lines[i];
-    // テーブル
-    if (line.includes("|") && lines[i + 1]?.match(/^\|[-| :]+\|/)) {
-      const headers = line.split("|").filter((_, idx, arr) => idx > 0 && idx < arr.length - 1).map(h => h.trim());
-      i += 2;
-      const rows: string[][] = [];
-      while (i < lines.length && lines[i].includes("|")) {
-        rows.push(lines[i].split("|").filter((_, idx, arr) => idx > 0 && idx < arr.length - 1).map(c => c.trim()));
-        i++;
-      }
-      result.push(
-        <div key={i} className="overflow-x-auto my-2">
-          <table className="text-xs border-collapse w-full">
-            <thead>
-              <tr>{headers.map((h, j) => <th key={j} className="border border-slate-300 bg-slate-100 px-2 py-1 text-left font-bold">{h}</th>)}</tr>
-            </thead>
-            <tbody>
-              {rows.map((row, ri) => (
-                <tr key={ri} className={ri % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                  {row.map((cell, ci) => <td key={ci} className="border border-slate-200 px-2 py-1">{cell}</td>)}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      );
-    // 区切り線
-    } else if (line.trim() === "---") {
-      result.push(<hr key={i} className="border-slate-200 my-2" />);
-      i++;
-    // 空行
-    } else if (line.trim() === "") {
-      result.push(<div key={i} className="h-2" />);
-      i++;
-    // 番号付きタスク行（①②③など or 【】を含む行）
-    } else if (/^[①②③④⑤⑥⑦⑧⑨⑩]/.test(line.trim()) || (line.includes("【") && line.includes("】") && !line.startsWith("　"))) {
-      result.push(
-        <p key={i} className="font-semibold text-slate-800 mt-3 mb-1">
-          {parseBold(line)}
-        </p>
-      );
-      i++;
-    // 通常行
-    } else {
-      result.push(
-        <p key={i} className="text-slate-700 leading-relaxed">
-          {parseBold(line)}
-        </p>
-      );
-      i++;
-    }
-  }
-  return result;
-}
-
-export default function Home() {
-  const [screen, setScreen] = useState<Screen>("top");
-  const [jd, setJd] = useState(`《兵庫県洲本市》蓄電バッテリーパック部材の購買業務【PEC　エナジーソリューション事業部】
+const DEFAULT_JD = `《兵庫県洲本市》蓄電バッテリーパック部材の購買業務【PEC　エナジーソリューション事業部】
 500万円〜700万円
 購買・資材調達
-
-電気・電子 半導体
-
-兵庫県
-
-仕事内容
-【職務内容】
-●調達部のミッション
-AIの拡大など急激に増加してるデータを管理するインフラであるデータセンターの拡大において、顧客要望を満たす調達スキームによるサプライチェーンの先導約を担い、安定供給とCF改善と競争力強化の推進をすることがわれわれのミッションです。
-
-●購買課のミッション
-・データセンター向けバッテリーモジュールにおける、パートナー様生産能力検証・戦略策定、安定調達、在庫最適化、量産購買ガバナンス(メキシコ・国内)
-
-●募集背景
-著しい成長を遂げているデータセンター事業に携わり、ともにパナソニックグループを牽引する仲間を募集します。
-
-●担当業務と役割
-・データセンター向けバッテリーモジュールの量産部品の購買業務。
-・人々の生活に直結する社会インフラのデータセンタ事業で、部品安定供給は絶対条件で、重責はありますが同時に大きなやりがいを感じる業務です。
-・日本国内に加え、メキシコ・中国・東南アジア諸国のパートナー様から、グローバルサプライチェーンを駆使した購買を担当いただけます。
-・将来メキシコで活躍いただく可能性もあります。
-
-●具体的な仕事内容
-・担当いただくパートナー様からの購買業務(発注、納期交渉、納入、在庫管理)
-・パートナー様の金型・設備投資伴う生産能力の検証と確保。
-・生産活動の最上流である購買ポジションで、営業・製造・品質・ロジスティックス部門と連携した調整業務。
-・メキシコ工場の部品購買支援、現地出張いただくこともあります。
-・これまでの経験値から新しいアイデア・周知を植え付けて組織を活性化いただくことも期待します。
-
-●この仕事を通じて得られること
-・これまで経験したことのない成長を遂げている事業であり、緊張感のある業務ですが、それだけ大きな達成感があります。
-・データセンターは社会インフラに位置付けられ、人々の生活になくてはならないものであり、市場の成長を感じることとグローバルの社会に貢献していることが実感できます。
-・職場の雰囲気は明るく、誰もが話しやすいメンバーです。これまでキャリアと新入社員を積極的に迎え入れていていますので歓迎するムードも高いです。
 
 応募資格
 必須(MUST)
@@ -542,7 +31,11 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 ・周囲とコミュニケーションがスムーズにとれる
 ・失敗を恐れず課題に向き合って果敢にチャレンジすることができる
 ・チームマネジメントに関し、積極的にリーダーシップが取れる
-・冷静な分析力と大胆な判断が取れる`);
+・冷静な分析力と大胆な判断が取れる`;
+
+export default function Home() {
+  const [screen, setScreen] = useState<Screen>("top");
+  const [jd, setJd] = useState(DEFAULT_JD);
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("");
   const isSubmittingRef = useRef(false);
@@ -559,7 +52,6 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
   const [simType, setSimType] = useState<"email" | "data" | "priority" | "report">("email");
   const [toast, setToast] = useState("");
-  const [heroStep, setHeroStep] = useState(0);
   const [suggesting, setSuggesting] = useState(false);
   const [chatTab, setChatTab] = useState<"sim" | "boss">("sim");
   const [consultQuestion, setConsultQuestion] = useState("");
@@ -571,18 +63,29 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   const chatRef = useRef<HTMLDivElement>(null);
   const lastAiMsgRef = useRef<HTMLDivElement>(null);
 
+  // ドラフト自動保存
   useEffect(() => {
-    if (screen !== "top") return;
-    const timer = setInterval(() => {
-      setHeroStep((prev) => (prev + 1) % 4);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, [screen]);
+    if (screen !== "sim") return;
+    localStorage.setItem(DRAFT_ACTION_KEY, action);
+  }, [action, screen]);
 
-  function showToast(msg: string) {
-    setToast(msg);
-    setTimeout(() => setToast(""), 4000);
-  }
+  useEffect(() => {
+    if (screen !== "sim") return;
+    localStorage.setItem(DRAFT_INTENT_KEY, intent);
+  }, [intent, screen]);
+
+  // sim画面に入ったときにドラフト復元
+  useEffect(() => {
+    if (screen !== "sim") return;
+    if (!action) {
+      const saved = localStorage.getItem(DRAFT_ACTION_KEY);
+      if (saved) setAction(saved);
+    }
+    if (!intent) {
+      const saved = localStorage.getItem(DRAFT_INTENT_KEY);
+      if (saved) setIntent(saved);
+    }
+  }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (lastAiMsgRef.current && chatRef.current) {
@@ -593,6 +96,11 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
   }, [messages]);
+
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(""), 4000);
+  }
 
   async function initSimulation() {
     if (jd.trim().length < 10) return;
@@ -606,27 +114,29 @@ AIの拡大など急激に増加してるデータを管理するインフラで
         body: JSON.stringify({ jd, simType }),
       });
       const data = await res.json();
-
       if (!res.ok) {
-        setError(data.error ?? "シナリオ生成に失敗しました");
-        setLoading(false);
+        setError(data.error ?? "シナリオの生成に失敗しました。もう一度お試しください。");
         return;
       }
-
-      track("simulation_started");
       setSimConfig(data);
       setMessages([{ role: "ai", text: data.firstMsg }]);
       setChatLogs([]);
       setRallyCount(0);
       setAnalysis(null);
-      setShowDetail(false);
-      setConsultLogs([]);
-      setChatTab("sim");
       setError("");
+      setShowDetail(false);
+      setReportUrl("");
+      setUrlCopied(false);
+      setAction("");
+      setIntent("");
+      setChatTab("sim");
+      setConsultLogs([]);
+      setConsultQuestion("");
+      setSuggesting(false);
       setScreen("sim");
-      setLoading(false);
     } catch (e) {
-      showToast("通信エラーが発生しました。もう一度お試しください。");
+      setError("通信エラーが発生しました。もう一度お試しください。");
+    } finally {
       setLoading(false);
     }
   }
@@ -751,6 +261,9 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       setScreen("result");
       setReportUrl("");
       setUrlCopied(false);
+      // ドラフトをクリア
+      localStorage.removeItem(DRAFT_ACTION_KEY);
+      localStorage.removeItem(DRAFT_INTENT_KEY);
       setLoading(false);
     } catch (e) {
       showToast("通信エラーが発生しました。もう一度お試しください。");
@@ -758,8 +271,26 @@ AIの拡大など急激に増加してるデータを管理するインフラで
     }
   }
 
-  function downloadPDF() {
-    window.print();
+  function resetSimulation() {
+    setScreen("setup");
+    setJd("");
+    setMessages([]);
+    setChatLogs([]);
+    setRallyCount(0);
+    setAnalysis(null);
+    setSimConfig(null);
+    setError("");
+    setShowDetail(false);
+    setReportUrl("");
+    setUrlCopied(false);
+    setAction("");
+    setIntent("");
+    setChatTab("sim");
+    setConsultLogs([]);
+    setConsultQuestion("");
+    setSuggesting(false);
+    localStorage.removeItem(DRAFT_ACTION_KEY);
+    localStorage.removeItem(DRAFT_INTENT_KEY);
   }
 
   function loadDebug() {
@@ -788,34 +319,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
     setUrlCopied(false);
   }
 
-  function getRecommendationKey(rec: string) {
-    for (const key of Object.keys(RECOMMENDATION_COLOR)) {
-      if (rec.includes(key)) return key;
-    }
-    return "要検討";
-  }
-
   const scoreLabels = simConfig?.scoreLabels ?? DEFAULT_SCORE_LABELS;
-  const safeContext = useMemo(() => {
-    if (typeof window === "undefined" || !simConfig?.context) return simConfig?.context ?? "";
-    return DOMPurify.sanitize(simConfig.context, { ALLOWED_TAGS: ["ul", "li", "p", "span"], ALLOWED_ATTR: ["class"] });
-  }, [simConfig?.context]);
-
-  const radarData = analysis
-    ? {
-        labels: scoreLabels,
-        datasets: [
-          {
-            data: analysis.scores.map((s) => Math.min(Number(s), 10)),
-            backgroundColor: "rgba(37, 99, 235, 0.15)",
-            borderColor: "rgba(37, 99, 235, 0.8)",
-            borderWidth: 2,
-            pointBackgroundColor: "rgba(37, 99, 235, 1)",
-            pointRadius: 4,
-          },
-        ],
-      }
-    : null;
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
@@ -860,632 +364,67 @@ AIの拡大など急激に増加してるデータを管理するインフラで
             </a>
           )}
           <div className="text-xs text-slate-400">
-            {screen === "top" && "仕事シミュレーション採用"}
-            {screen === "setup" && "仕事シミュレーション採用"}
+            {(screen === "top" || screen === "setup") && "仕事シミュレーション採用"}
             {screen === "sim" && `やり取り ${rallyCount} / 4回`}
             {screen === "result" && "評価レポート"}
           </div>
         </div>
       </header>
 
-      {/* Top / Landing screen */}
       {screen === "top" && (
-        <div className="min-h-[calc(100vh-44px)] bg-slate-900 text-white">
-
-          {/* Hero */}
-          <div className="flex flex-col items-center text-center px-8 md:px-16 py-20 md:py-28 max-w-4xl mx-auto w-full">
-            <p className="text-xs tracking-widest text-blue-400 uppercase mb-4">Next Generation Hiring</p>
-            <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight pl-6">
-              <span className="block">SPIでは測れない、</span>
-              <span className="block">
-                <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">本物の仕事力</span>を見抜く。
-              </span>
-            </h1>
-            <p className="text-slate-400 text-base md:text-lg max-w-xl leading-relaxed mb-10">
-              求人票を貼るだけで、AIがリアルな業務シナリオを生成。<br />
-              候補者が実際にどう動くかを、採用前に確かめる。
-            </p>
-            <button
-              onClick={() => setScreen("setup")}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-12 py-4 rounded-2xl text-sm transition-colors"
-            >
-              無料で試す →
-            </button>
-          </div>
-
-          {/* SPIの問題点 */}
-          <div className="bg-slate-800 px-6 py-16">
-            <div className="max-w-3xl mx-auto">
-              <p className="text-center text-xs tracking-widest text-slate-400 uppercase mb-8">The Problem</p>
-              <h2 className="text-2xl font-bold text-center mb-10">SPIでは、本物の仕事力を測れない。</h2>
-              <div className="grid md:grid-cols-3 gap-4">
-                {[
-                  {
-                    icon: (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-                        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="9" y1="12" x2="15" y2="12"/>
-                      </svg>
-                    ),
-                    title: "業務と無関係",
-                    desc: "言語・非言語の問題と、実際の仕事能力は別物。採用後にミスマッチが起きる。",
-                  },
-                  {
-                    icon: (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-                        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                      </svg>
-                    ),
-                    title: "対策で突破できる",
-                    desc: "SPIは暗記と練習で点数が上がる。本来の能力を測れていない。",
-                  },
-                  {
-                    icon: (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-                      </svg>
-                    ),
-                    title: "高得点でも活躍しない",
-                    desc: "SPIで上位でも、実務で使い物にならないケースが頻発する。テストの点数と仕事の成果が連動していない。",
-                  },
-                ].map((item) => (
-                  <div key={item.title} className="bg-slate-600/60 rounded-2xl p-5">
-                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-4 text-slate-300">
-                      {item.icon}
-                    </div>
-                    <p className="font-bold text-sm mb-2">{item.title}</p>
-                    <p className="text-xs text-slate-400 leading-relaxed">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* 答え */}
-          <div className="bg-slate-900 px-6 py-24 text-center border-t-2 border-blue-500/30">
-            <p className="text-xs tracking-widest text-blue-400 uppercase mb-6">The Answer</p>
-            <p className="text-slate-300 text-2xl font-bold mb-16">ではどうやって仕事の能力を測るのか。</p>
-            <p className="text-white font-black text-3xl md:text-5xl leading-tight mb-14 pl-6">
-              仕事の能力は、<br />仕事で測ればいい。
-            </p>
-            <p className="text-white font-bold text-2xl leading-relaxed mt-10 text-center">
-              TRACEは、求人票から業務シナリオを生成し、<br />候補者に対応させる。それがそのまま評価になる。
-            </p>
-          </div>
-
-          {/* TRACEの仕組み */}
-          <div className="px-6 py-16 bg-slate-800 border-t-2 border-blue-500/30">
-            <div className="max-w-3xl mx-auto">
-              <p className="text-center text-xs tracking-widest text-blue-400 uppercase mb-8">How it works</p>
-              <h2 className="text-2xl font-bold text-center mb-10">3ステップで採用精度が上がる。</h2>
-              <div className="space-y-4">
-                {[
-                  { step: "01", title: "求人票を貼るだけ", desc: "求人票をペーストすると、AIがその職種に合わせたリアルな業務シナリオを自動生成。営業なら商談、企画なら提案交渉など、仕事の現場そのままのシナリオが作られる。" },
-                  { step: "02", title: "候補者がシナリオに挑戦", desc: "候補者はAIが演じる取引先・上司・顧客と実際に会話する。返答内容だけでなく、その狙いや戦略まで入力することで思考プロセスまで可視化される。" },
-                  { step: "03", title: "AIが即座に評価レポートを生成", desc: "求人票に合わせた評価軸で多角的にスコアリング。採用推奨度・入社後の活躍シナリオ・懸念点・面接で深掘りすべき質問まで、即座に詳細レポートを出力する。" },
-                ].map((item) => (
-                  <div key={item.step} className="flex gap-5 items-center bg-slate-600/50 rounded-2xl p-5">
-                    <p className="text-3xl font-black text-blue-500/30 flex-shrink-0">{item.step}</p>
-                    <div>
-                      <p className="font-bold text-sm mb-1">{item.title}</p>
-                      <p className="text-xs text-slate-400 leading-relaxed">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* 比較表 */}
-          <div className="bg-slate-900 px-6 py-16 border-t border-slate-700">
-            <div className="max-w-3xl mx-auto">
-              <p className="text-center text-xs tracking-widest text-blue-400 uppercase mb-8">Why TRACE</p>
-              <h2 className="text-2xl font-bold text-center mb-10">従来の採用手法との違い</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr>
-                      <th className="text-left py-3 px-4 text-slate-400 font-medium text-xs w-2/5"></th>
-                      <th className="py-3 px-4 text-slate-400 font-medium text-xs text-center">SPI</th>
-                      <th className="py-3 px-4 text-slate-400 font-medium text-xs text-center">面接</th>
-                      <th className="py-3 px-4 text-blue-400 font-bold text-xs text-center">TRACE</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { label: "対策できるか", spi: "できる", interview: "できる", trace: "できない", traceGood: true },
-                      { label: "業務との関連性", spi: "低い", interview: "低い", trace: "高い", traceGood: true },
-                      { label: "思考プロセスが見えるか", spi: "見えない", interview: "担当者次第", trace: "見える", traceGood: true },
-                      { label: "取り繕えるか", spi: "—", interview: "取り繕える", trace: "取り繕えない", traceGood: true },
-                      { label: "評価の均質性", spi: "高い", interview: "属人的", trace: "高い", traceGood: true },
-                      { label: "ミスマッチリスク", spi: "高い", interview: "高い", trace: "低い", traceGood: true },
-                    ].map((row, i) => (
-                      <tr key={i} className={i % 2 === 0 ? "bg-slate-800/50" : ""}>
-                        <td className="py-3 px-4 text-slate-300 text-xs">{row.label}</td>
-                        <td className="py-3 px-4 text-slate-500 text-xs text-center">{row.spi}</td>
-                        <td className="py-3 px-4 text-slate-500 text-xs text-center">{row.interview}</td>
-                        <td className="py-3 px-4 text-center">
-                          <span className="text-blue-400 font-bold text-xs">{row.trace}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          {/* CTA */}
-          <div className="bg-slate-800 px-6 py-16 text-center">
-            <h2 className="text-2xl font-bold mb-4">まず、お試しください。</h2>
-            <p className="text-slate-400 text-sm mb-8">求人票があれば、今すぐ無料で体験できます。</p>
-            <button
-              onClick={() => setScreen("setup")}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-10 py-4 rounded-2xl text-sm transition-colors"
-            >
-              無料で試す →
-            </button>
-            <p className="text-xs text-slate-600 mt-4">クレジットカード不要 · アカウント登録不要</p>
-            <div className="mt-6 opacity-20 hover:opacity-100 transition-opacity">
-              <button onClick={loadDebug} className="text-xs text-slate-500 hover:text-slate-300">▶ debug: result</button>
-            </div>
-          </div>
-
-        </div>
+        <TopScreen setScreen={setScreen} loadDebug={loadDebug} />
       )}
 
-      {/* Setup screen */}
       {screen === "setup" && (
-        <div className="flex items-center justify-center min-h-[calc(100vh-64px)] p-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 w-full max-w-lg">
-            <h2 className="text-xl font-bold text-slate-800 mb-1">シミュレーション開始</h2>
-            <p className="text-sm text-slate-500 mb-6">職種・シナリオを選ぶか、求人票を直接貼り付けてください。</p>
-
-            {/* シミュレーション種類選択 */}
-            <label className="block text-xs font-bold text-slate-500 mb-2">シミュレーションの種類</label>
-            <div className="flex gap-2 mb-6">
-              <button
-                onClick={() => setSimType("email")}
-                className={`flex-1 py-3 rounded-xl text-sm font-bold border transition-colors ${simType === "email" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"}`}
-              >
-                メール対応
-              </button>
-              <button
-                onClick={() => setSimType("data")}
-                className={`flex-1 py-3 rounded-xl text-sm font-bold border transition-colors ${simType === "data" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"}`}
-              >
-                数字分析
-              </button>
-              <button
-                onClick={() => setSimType("priority")}
-                className={`flex-1 py-3 rounded-xl text-sm font-bold border transition-colors ${simType === "priority" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"}`}
-              >
-                優先順位
-              </button>
-              <button
-                onClick={() => setSimType("report")}
-                className={`flex-1 py-3 rounded-xl text-sm font-bold border transition-colors ${simType === "report" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"}`}
-              >
-                報告
-              </button>
-            </div>
-
-            {/* 職種選択 */}
-            <label className="block text-xs font-bold text-slate-500 mb-2">職種から選ぶ</label>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {JOB_TEMPLATES.map((job) => (
-                <button
-                  key={job.label}
-                  onClick={() => {
-                    const next = selectedJob === job.label ? null : job.label;
-                    setSelectedJob(next);
-                    if (simType === "data" || simType === "priority" || simType === "report") {
-                      setJd(next ? job.dataJd : "");
-                    }
-                  }}
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-colors ${
-                    selectedJob === job.label
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"
-                  }`}
-                >
-                  {job.label}
-                </button>
-              ))}
-            </div>
-
-            {/* パターン選択 */}
-            {simType === "email" && selectedJob && (
-              <div className="mb-4">
-                <label className="block text-xs font-bold text-violet-500 mb-2">シナリオパターン</label>
-                <div className="flex flex-wrap gap-2">
-                  {JOB_TEMPLATES.find((j) => j.label === selectedJob)?.patterns.map((pattern) => (
-                    <button
-                      key={pattern.label}
-                      onClick={() => setJd(pattern.jd)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                        jd === pattern.jd
-                          ? "bg-violet-600 text-white border-violet-600"
-                          : "bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100"
-                      }`}
-                    >
-                      {pattern.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <label className="block text-xs font-bold text-slate-500 mb-1">求人票（JD）</label>
-            <textarea
-              value={jd}
-              onChange={(e) => setJd(e.target.value)}
-              rows={8}
-              placeholder="ここに求人票を貼り付けてください..."
-              className="w-full border border-slate-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-blue-400 transition-colors mb-4"
-            />
-            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-            <button
-              onClick={initSimulation}
-              disabled={jd.trim().length < 10}
-              className="w-full bg-blue-600 text-white rounded-xl py-3 font-semibold hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            >
-              シミュレーションを開始する
-            </button>
-          </div>
-        </div>
+        <SetupScreen
+          jd={jd} setJd={setJd}
+          selectedJob={selectedJob} setSelectedJob={setSelectedJob}
+          simType={simType} setSimType={setSimType}
+          loading={loading} error={error}
+          onStart={initSimulation}
+        />
       )}
 
-      {/* Sim screen */}
       {screen === "sim" && simConfig && (
-        <div className="flex flex-col md:flex-row gap-3 md:gap-5 h-[calc(100dvh-44px)] p-3 md:p-5">
-          {/* Context: PC=左カラム固定 / SP=トグル */}
-          <div className="md:w-52 md:flex-shrink-0 flex flex-col">
-            {/* SPのトグルボタン */}
-            <button
-              onClick={() => setShowContext(!showContext)}
-              className="md:hidden flex items-center justify-between bg-white border border-slate-100 rounded-2xl px-4 py-3 text-sm font-bold text-blue-600 shadow-sm mb-2"
-            >
-              <span>📋 {simConfig.title}</span>
-              <span>{showContext ? "▲ 閉じる" : "▼ シナリオ確認"}</span>
-            </button>
-            {/* コンテキスト本体 */}
-            <div className={`${showContext ? "block" : "hidden"} md:block bg-white rounded-2xl border border-slate-100 px-3 py-4 overflow-y-auto shadow-sm flex-1`}>
-              <h3 className="font-bold text-blue-600 text-xs mb-3 hidden md:block leading-snug">{simConfig.title}</h3>
-              <div
-                className="text-[11px] text-slate-600 leading-relaxed space-y-2 [&_.label]:font-bold [&_.label]:text-slate-700 [&_p]:leading-snug"
-                dangerouslySetInnerHTML={{ __html: safeContext }}
-              />
-            </div>
-          </div>
-
-          {/* Right: chat */}
-          <div className="flex-1 flex flex-col gap-3 md:gap-4 min-h-0">
-            {/* Tab switcher */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => setChatTab("sim")}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${chatTab === "sim" ? "bg-sky-500 text-white" : "bg-white border border-sky-200 text-sky-500 hover:bg-sky-50"}`}
-              >
-                {simType === "data" ? "データ確認" : simType === "priority" ? "タスク状況" : simType === "report" ? "報告ログ" : "交渉チャット"}
-              </button>
-              <button
-                onClick={() => setChatTab("boss")}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${chatTab === "boss" ? "bg-sky-500 text-white" : "bg-white border border-sky-200 text-sky-500 hover:bg-sky-50"}`}
-              >
-                上司に相談 {consultLogs.length > 0 && <span className="ml-1 bg-blue-500 text-white rounded-full px-1.5 py-0.5 text-[10px]">{consultLogs.length}</span>}
-              </button>
-            </div>
-
-            {/* 交渉チャット */}
-            {chatTab === "sim" && (
-              <>
-                <div ref={chatRef} className="flex-1 bg-white rounded-2xl border border-slate-100 p-5 overflow-y-auto shadow-sm flex flex-col gap-4">
-                  {messages.map((msg, i) => {
-                    const isLastAi = msg.role === "ai" && messages.slice(i + 1).every(m => m.role !== "ai");
-                    return (
-                    <div key={i} ref={isLastAi ? lastAiMsgRef : null} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                      <div className={`${msg.role === "ai" && (simType === "data" || simType === "priority" || simType === "report") ? "w-full" : "max-w-[80%]"} rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                        msg.role === "ai"
-                          ? "bg-slate-50 border border-slate-100 text-slate-700 rounded-tl-sm"
-                          : "bg-blue-600 text-white rounded-tr-sm whitespace-pre-wrap"
-                      }`}>
-                        {msg.role === "ai" && (simType === "data" || simType === "priority" || simType === "report") ? renderMarkdown(msg.text) : msg.text}
-                        {msg.intent && (
-                          <span className="block text-xs mt-2 pt-2 border-t border-white/20 text-blue-100 italic">
-                            戦略: {msg.intent}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    );
-                  })}
-                </div>
-
-                {/* Input area */}
-                <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
-                  <div className="flex justify-end mb-2">
-                    <button
-                      onClick={async () => {
-                        if (suggesting || !simConfig) return;
-                        setSuggesting(true);
-                        try {
-                          const lastAiMsg = [...messages].reverse().find(m => m.role === "ai")?.text ?? "";
-                          const res = await fetch("/api/suggest", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              aiRole: simConfig.aiRole,
-                              lastAiMessage: lastAiMsg,
-                              rallyCount,
-                              context: simConfig.context,
-                            }),
-                          });
-                          const data = await res.json();
-                          if (data.action) setAction(data.action);
-                          if (data.intent) setIntent(data.intent);
-                        } catch {
-                          showToast("サンプル生成に失敗しました");
-                        } finally {
-                          setSuggesting(false);
-                        }
-                      }}
-                      disabled={suggesting}
-                      className="text-xs text-slate-400 hover:text-blue-500 border border-slate-200 hover:border-blue-300 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
-                    >
-                      {suggesting ? "生成中..." : "💡 AI提案"}
-                    </button>
-                  </div>
-                  <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-3">
-                    <div className="flex-1">
-                      <label className="block text-xs font-bold text-slate-400 mb-1">{simType === "data" ? "アクションプラン" : simType === "priority" ? "優先順位と対応方針" : simType === "report" ? "報告内容" : "返信内容（アクション）"}</label>
-                      <textarea
-                        value={action}
-                        onChange={(e) => setAction(e.target.value)}
-                        rows={3}
-                        className="w-full border border-slate-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-blue-400 transition-colors"
-                        placeholder={simType === "data" ? "アクションプランを書いてください..." : simType === "priority" ? "何をどの順番でやるか書いてください..." : simType === "report" ? "報告内容を書いてください..." : "相手へのメッセージを書いてください..."}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-xs font-bold text-violet-400 mb-1">狙い・戦略（意図）</label>
-                      <textarea
-                        value={intent}
-                        onChange={(e) => setIntent(e.target.value)}
-                        rows={3}
-                        className="w-full border border-violet-200 bg-violet-50 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-violet-400 transition-colors"
-                        placeholder={simType === "data" ? "このアクションの狙いを書いてください..." : simType === "priority" ? "なぜその順番にしたか書いてください..." : simType === "report" ? "なぜその伝え方にしたか書いてください..." : "このメッセージの狙いを書いてください..."}
-                      />
-                    </div>
-                  </div>
-                  {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
-                  <button
-                    onClick={processRally}
-                    disabled={!action.trim() || !intent.trim()}
-                    className="w-full bg-sky-500 text-white rounded-xl py-3 font-semibold hover:bg-sky-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  >
-                    送信する
-                  </button>
-                </div>
-              </>
-            )}
-
-            {/* 上司チャット */}
-            {chatTab === "boss" && (
-              <>
-                <div className="flex-1 bg-white rounded-2xl border border-slate-100 p-5 overflow-y-auto shadow-sm flex flex-col gap-4">
-                  {consultLogs.length === 0 && (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-                      <p className="text-sm font-semibold text-slate-600">上司に相談する</p>
-                    </div>
-                  )}
-                  {consultLogs.map((log, i) => (
-                    <div key={i} className="space-y-2">
-                      <div className="flex justify-end">
-                        <div className="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-3 text-sm max-w-[80%] whitespace-pre-wrap">{log.question}</div>
-                      </div>
-                      <div className="flex justify-start">
-                        <div className="bg-slate-50 border border-slate-100 rounded-2xl rounded-tl-sm px-4 py-3 text-sm max-w-[80%] whitespace-pre-wrap text-slate-700">{log.reply}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
-                  <textarea
-                    value={consultQuestion}
-                    onChange={(e) => setConsultQuestion(e.target.value)}
-                    rows={3}
-                    placeholder=""
-                    className="w-full border border-slate-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-blue-400 transition-colors mb-3"
-                  />
-                  <button
-                    onClick={consultColleague}
-                    disabled={!consultQuestion.trim() || consultLoading}
-                    className="w-full bg-sky-500 text-white rounded-xl py-3 font-semibold hover:bg-sky-400 disabled:opacity-30 transition-colors"
-                  >
-                    {consultLoading ? "返答を待っています..." : "送信する"}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+        <SimScreen
+          simConfig={simConfig}
+          simType={simType}
+          messages={messages}
+          action={action} setAction={setAction}
+          intent={intent} setIntent={setIntent}
+          rallyCount={rallyCount}
+          error={error}
+          loading={loading} loadingMsg={loadingMsg}
+          suggesting={suggesting} setSuggesting={setSuggesting}
+          chatTab={chatTab} setChatTab={setChatTab}
+          showContext={showContext} setShowContext={setShowContext}
+          consultQuestion={consultQuestion} setConsultQuestion={setConsultQuestion}
+          consultLoading={consultLoading}
+          consultLogs={consultLogs}
+          analysis={analysis}
+          setScreen={setScreen}
+          onSendRally={processRally}
+          onConsult={consultColleague}
+          showToast={showToast}
+          chatRef={chatRef}
+          lastAiMsgRef={lastAiMsgRef}
+        />
       )}
 
-      {/* Result screen */}
       {screen === "result" && analysis && (
-        <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
-
-          {/* ① スコア → 結果を一発で把握 */}
-          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-            <p className="text-base font-bold text-slate-600 mb-3 text-center">評価スコア</p>
-            <div className="flex flex-col gap-4 items-center">
-              <div className="w-56 flex-shrink-0">
-                {radarData && (
-                  <Radar data={radarData} options={{
-                    scales: { r: { min: 0, max: 10, ticks: { display: false }, grid: { color: "#e2e8f0" }, pointLabels: { font: { size: 9 }, color: "#64748b" } } },
-                    plugins: { legend: { display: false } },
-                  }} />
-                )}
-              </div>
-              <div className="flex-1 w-full space-y-3">
-                {scoreLabels.map((label, i) => (
-                  <div key={label} className="flex items-center gap-3">
-                    <span className="text-slate-600 font-semibold text-base w-24 flex-shrink-0">{label}</span>
-                    <div className="flex items-center gap-2 flex-1">
-                      <div className="flex-1 bg-slate-100 rounded-full h-4">
-                        <div className="bg-blue-500 h-4 rounded-full transition-all" style={{ width: `${(analysis.scores[i] / 10) * 100}%` }} />
-                      </div>
-                      <span className="font-black text-slate-800 text-2xl w-8 text-right">{analysis.scores[i]}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* ② 採用推奨度 → スコアを見た上で判定 */}
-          <div className={`rounded-2xl border-2 p-6 text-center ${RECOMMENDATION_COLOR[getRecommendationKey(analysis.hiring_recommendation)]}`}>
-            <p className="text-sm font-bold mb-2 opacity-60">採用推奨度</p>
-            <p className="text-5xl font-black mb-4">{getRecommendationKey(analysis.hiring_recommendation)}</p>
-            <p className="text-base leading-relaxed">{analysis.overall}</p>
-          </div>
-
-          {/* ③ 活躍シナリオ・懸念点 → なぜその推奨度か */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-5">
-              <p className="text-xs font-bold text-emerald-600 mb-2">🚀 入社後の活躍シナリオ</p>
-              <p className="text-sm text-slate-600 leading-relaxed">{analysis.onboarding_scenario}</p>
-            </div>
-            <div className="bg-red-50 rounded-2xl border border-red-100 p-5">
-              <p className="text-xs font-bold text-red-500 mb-2">⚠️ 懸念点・フォローアップ</p>
-              <p className="text-sm text-slate-600 leading-relaxed">{analysis.risk_points}</p>
-            </div>
-          </div>
-
-          {/* ④ 面接で確認すべき質問 */}
-          {analysis.interview_questions && (
-            <div className="bg-violet-50 rounded-2xl border border-violet-100 p-5">
-              <p className="text-xs font-bold text-violet-600 mb-3">🎤 面接で確認すべき質問</p>
-              <ol className="space-y-3">
-                {analysis.interview_questions
-                  .split("\n")
-                  .filter((line) => line.trim())
-                  .map((line, i) => {
-                    const match = line.match(/^\d+\.\s*(.*)/);
-                    const text = match ? match[1] : line;
-                    return (
-                      <li key={i} className="text-sm text-slate-600 leading-relaxed flex gap-2">
-                        <span className="text-violet-500 font-black flex-shrink-0">{i + 1}.</span>
-                        <span>{text}</span>
-                      </li>
-                    );
-                  })}
-              </ol>
-            </div>
-          )}
-
-          {/* ⑤ 詳細レポート → 折りたたみ */}
-          <button
-            onClick={() => setShowDetail(!showDetail)}
-            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl py-3 text-sm font-medium transition-colors"
-          >
-            {showDetail ? "▲ 詳細レポートを閉じる" : "▼ 詳細レポートを見る"}
-          </button>
-
-          {showDetail && (
-            <div className="space-y-4">
-              <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">パーソナリティ分析</p>
-                <p className="text-sm text-slate-600 leading-relaxed">{analysis.personality}</p>
-              </div>
-              <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">詳細フィードバック</p>
-                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{analysis.detail}</p>
-              </div>
-              <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-4">
-                <div>
-                  <p className="text-xs font-bold text-orange-500 mb-1">💡 このシミュレーションの山場</p>
-                  <p className="text-sm text-slate-600 leading-relaxed">{analysis.critical_point}</p>
-                </div>
-                <div className="border-t border-slate-100 pt-4">
-                  <p className="text-xs font-bold text-blue-500 mb-1">🎯 理想的な立ち回り</p>
-                  <p className="text-sm text-slate-600 leading-relaxed">{analysis.best_approach}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ⑥ アクション */}
-          <div className="flex gap-3 print:hidden">
-            <button onClick={downloadPDF} className="flex-1 bg-orange-500 hover:bg-orange-400 text-white rounded-xl py-3 font-semibold transition-colors text-sm">
-              PDFで保存
-            </button>
-            <button
-              onClick={() => setScreen("sim")}
-              className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl py-3 font-semibold transition-colors text-sm"
-            >
-              やり取りを確認
-            </button>
-            <button
-              onClick={() => { setScreen("setup"); setJd(""); setMessages([]); setChatLogs([]); setRallyCount(0); setAnalysis(null); setSimConfig(null); setError(""); setShowDetail(false); setReportUrl(""); setUrlCopied(false); setAction(""); setIntent(""); setChatTab("sim"); setConsultLogs([]); setConsultQuestion(""); setSuggesting(false); }}
-              className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-xl py-3 font-semibold transition-colors text-sm"
-            >
-              もう一度
-            </button>
-          </div>
-
-          {/* URL発行 */}
-          <div className="mt-3">
-            {!reportUrl ? (
-              <button
-                onClick={async () => {
-                  setSavingReport(true);
-                  try {
-                    const res = await fetch("/api/save-report", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        simType,
-                        title: simConfig?.title,
-                        context: simConfig?.context,
-                        analysis,
-                        scoreLabels: simConfig?.scoreLabels,
-                        chatLogs,
-                      }),
-                    });
-                    const data = await res.json();
-                    if (data.id) {
-                      setReportUrl(`${window.location.origin}/report/${data.id}`);
-                    }
-                  } catch {
-                    showToast("URL発行に失敗しました");
-                  } finally {
-                    setSavingReport(false);
-                  }
-                }}
-                disabled={savingReport}
-                className="w-full bg-indigo-500 hover:bg-indigo-400 disabled:bg-indigo-300 text-white rounded-xl py-3 font-semibold transition-colors text-sm"
-              >
-                {savingReport ? "発行中..." : "🔗 共有URLを発行する"}
-              </button>
-            ) : (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={reportUrl}
-                  readOnly
-                  className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-600 bg-slate-50"
-                />
-                <button
-                  onClick={() => { navigator.clipboard.writeText(reportUrl); setUrlCopied(true); setTimeout(() => setUrlCopied(false), 2000); }}
-                  className="bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl px-4 py-2 text-xs font-bold transition-colors"
-                >
-                  {urlCopied ? "✓ コピー" : "コピー"}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        <ResultScreen
+          analysis={analysis}
+          simConfig={simConfig}
+          simType={simType}
+          scoreLabels={scoreLabels}
+          showDetail={showDetail} setShowDetail={setShowDetail}
+          reportUrl={reportUrl} urlCopied={urlCopied} savingReport={savingReport}
+          setReportUrl={setReportUrl} setUrlCopied={setUrlCopied} setSavingReport={setSavingReport}
+          setScreen={setScreen}
+          chatLogs={chatLogs}
+          onReset={resetSimulation}
+          showToast={showToast}
+        />
       )}
     </div>
   );
