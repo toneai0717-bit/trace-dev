@@ -72,10 +72,13 @@ ${scoreItems}
       .map((s) => Math.min(Math.max(Number(s.trim()), 0), 10))
       .filter((n) => !isNaN(n))
       .slice(0, labels.length);
-    // 不足分を0で補完して必ずlabels.lengthと一致させる
+    if (parsedScores.length === 0) {
+      return NextResponse.json({ error: "スコアの解析に失敗しました。もう一度お試しください。" }, { status: 500 });
+    }
+    const fillScore = Math.round(parsedScores.reduce((a, b) => a + b, 0) / parsedScores.length);
     const scores = [
       ...parsedScores,
-      ...Array(Math.max(0, labels.length - parsedScores.length)).fill(0),
+      ...Array(Math.max(0, labels.length - parsedScores.length)).fill(fillScore),
     ];
 
     return NextResponse.json({

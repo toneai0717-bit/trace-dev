@@ -36,7 +36,7 @@ interface Report {
 }
 
 export default function ReportPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

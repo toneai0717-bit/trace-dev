@@ -544,6 +544,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
 ・冷静な分析力と大胆な判断が取れる`);
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("");
+  const isSubmittingRef = useRef(false);
   const [simConfig, setSimConfig] = useState<SimConfig | null>(null);
   const [messages, setMessages] = useState<{ role: "ai" | "user"; text: string; intent?: string }[]>([]);
   const [chatLogs, setChatLogs] = useState<ChatLog[]>([]);
@@ -660,7 +661,8 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   }
 
   async function processRally() {
-    if (!action.trim() || !intent.trim() || !simConfig) return;
+    if (isSubmittingRef.current || !action.trim() || !intent.trim() || !simConfig) return;
+    isSubmittingRef.current = true;
 
     const savedAction = action;
     const savedIntent = intent;
@@ -717,6 +719,8 @@ AIの拡大など急激に増加してるデータを管理するインフラで
       setAction(savedAction);
       setIntent(savedIntent);
       setLoading(false);
+    } finally {
+      isSubmittingRef.current = false;
     }
   }
 
