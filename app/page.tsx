@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import DOMPurify from "dompurify";
 import { track } from "@vercel/analytics";
 import { Radar } from "react-chartjs-2";
 import {
@@ -795,6 +796,10 @@ AIの拡大など急激に増加してるデータを管理するインフラで
   }
 
   const scoreLabels = simConfig?.scoreLabels ?? DEFAULT_SCORE_LABELS;
+  const safeContext = useMemo(() => {
+    if (typeof window === "undefined" || !simConfig?.context) return simConfig?.context ?? "";
+    return DOMPurify.sanitize(simConfig.context, { ALLOWED_TAGS: ["ul", "li", "p", "span"], ALLOWED_ATTR: ["class"] });
+  }, [simConfig?.context]);
 
   const radarData = analysis
     ? {
@@ -1148,7 +1153,7 @@ AIの拡大など急激に増加してるデータを管理するインフラで
               <h3 className="font-bold text-blue-600 text-xs mb-3 hidden md:block leading-snug">{simConfig.title}</h3>
               <div
                 className="text-[11px] text-slate-600 leading-relaxed space-y-2 [&_.label]:font-bold [&_.label]:text-slate-700 [&_p]:leading-snug"
-                dangerouslySetInnerHTML={{ __html: simConfig.context }}
+                dangerouslySetInnerHTML={{ __html: safeContext }}
               />
             </div>
           </div>
