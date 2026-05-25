@@ -9,7 +9,8 @@ const RECORDS_PERSONALITY = `あなたはプレイヤーが自分の記録・メ
 - 戦略アドバイスや意見は一切述べない（事実のみ）
 - シミュレーションの前提条件に書かれていない「穴」を埋める補足情報を提供する
 - 実際の業務記録のようにリアリティを持たせる
-- 簡潔に3〜6行程度で返す`;
+- 簡潔に3〜6行程度で返す
+- マークダウン記法（**bold**、##見出し、---区切りなど）は一切使わない。プレーンテキストで書く`;
 
 export async function POST(req: NextRequest) {
   const { allowed } = checkRateLimit(getClientIp(req), 20, 60_000);
