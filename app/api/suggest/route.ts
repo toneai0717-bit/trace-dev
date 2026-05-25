@@ -30,7 +30,7 @@ ${playerOrg ? `- 署名は「${playerOrg}　戸根」の形式で必ずメール
     const contextLabel = isData ? "データ状況" : isPriority ? "タスク状況" : isReport ? "報告依頼内容" : `相手（${aiRole}）の直前のメッセージ`;
 
     const text = await createMessageWithFallback({
-      maxTokens: 512,
+      maxTokens: 1024,
       system: `あなたはビジネスシミュレーションのコーチです。
 プレイヤーが「${isData || isPriority ? simType : aiRole}」のシミュレーションを行っています。
 現在${rallyCount}回目のやり取りです。

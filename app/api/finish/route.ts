@@ -7,7 +7,9 @@ export async function POST(req: NextRequest) {
   if (!allowed) return NextResponse.json({ error: "リクエストが多すぎます。少し待ってから再試行してください。" }, { status: 429 });
 
   try {
-    const { chatLogs, targetPersona, scoreLabels, consultLogs } = await req.json();
+    const { chatLogs: rawChatLogs, targetPersona, scoreLabels, consultLogs: rawConsultLogs } = await req.json();
+    const chatLogs = Array.isArray(rawChatLogs) ? rawChatLogs.slice(0, 10) : [];
+    const consultLogs = Array.isArray(rawConsultLogs) ? rawConsultLogs.slice(0, 10) : [];
 
     const labels: string[] = Array.isArray(scoreLabels) && scoreLabels.length >= 3
       ? scoreLabels

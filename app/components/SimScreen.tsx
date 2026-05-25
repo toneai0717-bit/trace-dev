@@ -213,7 +213,7 @@ export default function SimScreen({
                       setSuggesting(false);
                     }
                   }}
-                  disabled={suggesting}
+                  disabled={suggesting || loading}
                   className="text-xs text-slate-400 hover:text-blue-500 border border-slate-200 hover:border-blue-300 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
                 >
                   {suggesting ? "生成中..." : "💡 AI提案"}

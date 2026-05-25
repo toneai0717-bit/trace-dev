@@ -129,6 +129,8 @@ export default function Home() {
       setShowDetail(false);
       setReportUrl("");
       setUrlCopied(false);
+      localStorage.removeItem(DRAFT_ACTION_KEY);
+      localStorage.removeItem(DRAFT_INTENT_KEY);
       setAction("");
       setIntent("");
       setChatTab("sim");

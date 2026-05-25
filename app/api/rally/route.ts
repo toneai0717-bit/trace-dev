@@ -26,7 +26,9 @@ export async function POST(req: NextRequest) {
     }
 
     if (claudeMessages.length === 0) {
-      const lastAction = chatLogs[chatLogs.length - 1]?.action ?? "";
+      const lastAction = Array.isArray(chatLogs) && chatLogs.length > 0
+        ? chatLogs[chatLogs.length - 1]?.action ?? ""
+        : "";
       claudeMessages.push({ role: "user", content: lastAction });
     }
 

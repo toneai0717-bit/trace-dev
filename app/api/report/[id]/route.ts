@@ -6,7 +6,8 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    if (!id || typeof id !== "string") {
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!id || !UUID_RE.test(id)) {
       return NextResponse.json({ error: "Invalid report ID" }, { status: 400 });
     }
     const { data, error } = await supabase

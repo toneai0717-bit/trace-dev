@@ -25,20 +25,24 @@ export async function POST(req: NextRequest) {
       .in("id", reportIds);
 
     if (error) throw error;
-    if (!reports || reports.length < 2) {
+    if (!reports || reports.length < 3) {
       return NextResponse.json({ error: "レポートが見つかりませんでした" }, { status: 404 });
     }
 
     // レポートをサマリー形式に変換
-    const reportSummaries = reports.map((r, i) => `
+    const reportSummaries = reports.map((r, i) => {
+      const scoreLabels: string[] = Array.isArray(r.score_labels) ? r.score_labels : [];
+      const scores: number[] = Array.isArray(r.analysis?.scores) ? r.analysis.scores : [];
+      return `
 【シミュレーション${i + 1}：${r.sim_type === "email" ? "メール対応" : r.sim_type === "data" ? "数字分析" : r.sim_type === "priority" ? "優先順位" : "報告"}】
-タイトル：${r.title}
-評価軸：${r.score_labels.join("・")}
-スコア：${r.score_labels.map((label: string, j: number) => `${label}${r.analysis.scores[j]}/10`).join("、")}
-総合評価：${r.analysis.overall}
-人物像：${r.analysis.personality}
-採用推奨度：${r.analysis.hiring_recommendation}
-`).join("\n---\n");
+タイトル：${r.title ?? ""}
+評価軸：${scoreLabels.join("・")}
+スコア：${scoreLabels.map((label: string, j: number) => `${label}${scores[j] ?? "-"}/10`).join("、")}
+総合評価：${r.analysis?.overall ?? ""}
+人物像：${r.analysis?.personality ?? ""}
+採用推奨度：${r.analysis?.hiring_recommendation ?? ""}
+`;
+    }).join("\n---\n");
 
     const text = await createMessageWithFallback({
       maxTokens: 2048,
