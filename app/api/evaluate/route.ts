@@ -58,11 +58,9 @@ ${reportSummaries}
 以下のタグで統合評価を出力してください：
 
 <OVERALL>3回を通じた総合所見（200字以内）</OVERALL>
-<CONSISTENT_STRENGTHS>複数回を通じて見えた「判断の根底にある価値観・優先軸」と強み（箇条書き3点）</CONSISTENT_STRENGTHS>
-<CONSISTENT_WEAKNESSES>複数回を通じて見えた課題・懸念・判断の癖（箇条書き2〜3点）</CONSISTENT_WEAKNESSES>
+<CONSISTENT_STRENGTHS>複数回を通じて見えた「判断の根底にある価値観・優先軸・強み」と「入社後にどんな業務・環境で最も力を発揮するか（活躍シナリオ）」を合わせて箇条書き3〜4点で記載。強みと活躍場面をセットで書くこと。</CONSISTENT_STRENGTHS>
+<CONSISTENT_WEAKNESSES>複数回を通じて見えた「判断の癖・課題・懸念」と「入社後に必要な具体的なフォローアップ・サポート」を合わせて箇条書き2〜3点で記載。課題とフォローアップをセットで書くこと。</CONSISTENT_WEAKNESSES>
 <PERSONALITY>候補者の本質的な人物像（100字以内）</PERSONALITY>
-<ONBOARDING_SCENARIO>複数回のシミュレーションを踏まえた入社後の活躍シナリオ。どんな業務・環境で最も力を発揮するか（150字以内）</ONBOARDING_SCENARIO>
-<RISK_POINTS>複数回を通じて見えたリスク・懸念点と、入社後に必要なフォローアップ（150字以内）</RISK_POINTS>
 <RELIABILITY>評価の信頼性コメント（シミュレーション種類の多様性・回数を踏まえて）</RELIABILITY>
 <FINAL_RECOMMENDATION>最終採用推奨度（「強く推奨」「推奨」「要検討」「非推奨」のいずれか）とその理由（100字以内）</FINAL_RECOMMENDATION>`,
     });
@@ -78,8 +76,6 @@ ${reportSummaries}
       consistentStrengths: extract("CONSISTENT_STRENGTHS"),
       consistentWeaknesses: extract("CONSISTENT_WEAKNESSES"),
       personality: extract("PERSONALITY"),
-      onboardingScenario: extract("ONBOARDING_SCENARIO"),
-      riskPoints: extract("RISK_POINTS"),
       reliability: extract("RELIABILITY"),
       finalRecommendation: extract("FINAL_RECOMMENDATION"),
     });

@@ -44,8 +44,6 @@ interface EvaluationResult {
   consistentStrengths: string;
   consistentWeaknesses: string;
   personality: string;
-  onboardingScenario: string;
-  riskPoints: string;
   reliability: string;
   finalRecommendation: string;
 }
@@ -203,27 +201,15 @@ export default function EvaluatePage() {
               </div>
             </div>
 
-            {/* 強み・課題 */}
+            {/* 強み・活躍シナリオ／課題・フォローアップ */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-5">
-                <p className="text-xs font-bold text-emerald-600 mb-3">✅ 判断の根底にある価値観・強み</p>
+                <p className="text-xs font-bold text-emerald-600 mb-3">🚀 強み・活躍シナリオ</p>
                 {renderBulletText(result.consistentStrengths)}
               </div>
               <div className="bg-amber-50 rounded-2xl border border-amber-100 p-5">
-                <p className="text-xs font-bold text-amber-600 mb-3">⚠️ 判断の癖・課題・懸念</p>
+                <p className="text-xs font-bold text-amber-600 mb-3">⚠️ 課題・フォローアップ</p>
                 {renderBulletText(result.consistentWeaknesses)}
-              </div>
-            </div>
-
-            {/* 活躍シナリオ・リスク */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-5">
-                <p className="text-xs font-bold text-emerald-600 mb-2">🚀 入社後の活躍シナリオ</p>
-                <p className="text-sm text-slate-600 leading-relaxed">{result.onboardingScenario}</p>
-              </div>
-              <div className="bg-red-50 rounded-2xl border border-red-100 p-5">
-                <p className="text-xs font-bold text-red-500 mb-2">⚠️ 懸念点・フォローアップ</p>
-                <p className="text-sm text-slate-600 leading-relaxed">{result.riskPoints}</p>
               </div>
             </div>
 
