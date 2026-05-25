@@ -32,7 +32,6 @@ function renderBulletText(text: string) {
   );
 }
 
-
 interface EvaluationResult {
   reports: {
     id: string;
@@ -47,6 +46,13 @@ interface EvaluationResult {
   personality: string;
   reliability: string;
   finalRecommendation: string;
+}
+
+function getRecommendationKey(rec: string) {
+  for (const key of Object.keys(RECOMMENDATION_COLOR)) {
+    if (rec.includes(key)) return key;
+  }
+  return "要検討";
 }
 
 export default function EvaluatePage() {
@@ -88,25 +94,20 @@ export default function EvaluatePage() {
     }
   };
 
-  const getRecommendationColor = (rec: string) => {
-    for (const key of Object.keys(RECOMMENDATION_COLOR)) {
-      if (rec.includes(key)) return RECOMMENDATION_COLOR[key];
-    }
-    return "bg-slate-50 border-slate-300 text-slate-700";
-  };
-
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between">
-        <a href="/" className="text-lg font-black tracking-tight text-slate-800 hover:opacity-70 transition-opacity">TRACE</a>
+    <div className="min-h-screen bg-slate-50 font-sans">
+      <header className="bg-slate-900 text-white px-6 py-1.5 flex justify-between items-center shadow-lg">
+        <a href="/" className="font-black tracking-widest text-lg bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent hover:opacity-70 transition-opacity">
+          TRACE
+        </a>
         <div className="text-xs text-slate-400">統合評価</div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+      <div className="max-w-2xl mx-auto px-4 py-8 space-y-4">
 
         {/* 入力エリア */}
         {!result && (
-          <div className="bg-white rounded-2xl p-5 border border-slate-100 space-y-4">
+          <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-4">
             <div>
               <h1 className="text-base font-black text-slate-800 mb-1">複数シミュレーション 統合評価</h1>
               <p className="text-xs text-slate-500 leading-relaxed">候補者が受けたシミュレーションのレポートURLを入力してください。3〜4件で統合評価・採用推奨度を生成します。</p>
@@ -157,7 +158,7 @@ export default function EvaluatePage() {
         {result && (
           <>
             {/* 受験シミュレーション一覧 */}
-            <div className="bg-white rounded-2xl p-5 border border-slate-100">
+            <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
               <h2 className="text-xs font-bold text-slate-400 mb-3">受験シミュレーション</h2>
               <div className="space-y-2">
                 {result.reports.map((r, i) => (
@@ -177,49 +178,55 @@ export default function EvaluatePage() {
             </div>
 
             {/* 採用推奨度 */}
-            <div className={`rounded-2xl p-5 border-2 ${getRecommendationColor(result.finalRecommendation)}`}>
-              <h2 className="text-xs font-bold mb-1 opacity-70">採用推奨度</h2>
-              <p className="text-sm font-bold leading-relaxed">{result.finalRecommendation}</p>
-            </div>
+            {(() => {
+              const recKey = getRecommendationKey(result.finalRecommendation);
+              return (
+                <div className={`rounded-2xl border-2 p-6 text-center ${RECOMMENDATION_COLOR[recKey]}`}>
+                  <p className="text-sm font-bold mb-2 opacity-60">最終採用推奨度</p>
+                  <p className="text-5xl font-black mb-4">{recKey}</p>
+                  <p className="text-base leading-relaxed">{result.finalRecommendation.replace(/^(強く推奨|推奨|要検討|非推奨)[：:]\s*/, "")}</p>
+                </div>
+              );
+            })()}
 
             {/* 総合評価・人物像 */}
-            <div className="bg-white rounded-2xl p-5 border border-slate-100 space-y-4">
+            <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-4">
               <div>
-                <h2 className="text-xs font-bold text-violet-500 mb-1">総合評価</h2>
+                <p className="text-xs font-bold text-violet-500 mb-2">総合評価</p>
                 <p className="text-sm text-slate-700 leading-relaxed">{result.overall}</p>
               </div>
-              <div>
-                <h2 className="text-xs font-bold text-violet-500 mb-1">人物像</h2>
+              <div className="border-t border-slate-100 pt-4">
+                <p className="text-xs font-bold text-violet-500 mb-2">人物像</p>
                 <p className="text-sm text-slate-700 leading-relaxed">{result.personality}</p>
               </div>
             </div>
 
-            {/* 詳細フィードバック */}
-            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-              <button
-                onClick={() => setShowDetail(!showDetail)}
-                className="w-full px-5 py-4 flex items-center justify-between text-left"
-              >
-                <span className="text-sm font-bold text-slate-700">詳細フィードバック</span>
-                <span className="text-slate-400 text-lg">{showDetail ? "▲" : "▼"}</span>
-              </button>
-              {showDetail && (
-                <div className="px-5 pb-5 space-y-5 border-t border-slate-100 pt-4">
-                  <div>
-                    <h3 className="text-xs font-bold text-emerald-500 mb-3">判断の根底にある価値観・強み</h3>
-                    {renderBulletText(result.consistentStrengths)}
-                  </div>
-                  <div className="border-t border-slate-100 pt-4">
-                    <h3 className="text-xs font-bold text-amber-500 mb-3">判断の癖・課題・懸念</h3>
-                    {renderBulletText(result.consistentWeaknesses)}
-                  </div>
-                  <div className="border-t border-slate-100 pt-4">
-                    <h3 className="text-xs font-bold text-slate-400 mb-2">評価の信頼性</h3>
-                    <p className="text-sm text-slate-500 leading-relaxed">{result.reliability.replace(/\*\*/g, "")}</p>
-                  </div>
-                </div>
-              )}
+            {/* 強み・課題 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-5">
+                <p className="text-xs font-bold text-emerald-600 mb-3">✅ 判断の根底にある価値観・強み</p>
+                {renderBulletText(result.consistentStrengths)}
+              </div>
+              <div className="bg-amber-50 rounded-2xl border border-amber-100 p-5">
+                <p className="text-xs font-bold text-amber-600 mb-3">⚠️ 判断の癖・課題・懸念</p>
+                {renderBulletText(result.consistentWeaknesses)}
+              </div>
             </div>
+
+            {/* 詳細（評価信頼性） */}
+            <button
+              onClick={() => setShowDetail(!showDetail)}
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl py-3 text-sm font-medium transition-colors"
+            >
+              {showDetail ? "▲ 詳細を閉じる" : "▼ 評価の信頼性を見る"}
+            </button>
+
+            {showDetail && (
+              <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">評価の信頼性</p>
+                <p className="text-sm text-slate-600 leading-relaxed">{result.reliability.replace(/\*\*/g, "")}</p>
+              </div>
+            )}
 
             <button
               onClick={() => { setResult(null); setUrls(["", "", "", ""]); setShowDetail(false); }}
