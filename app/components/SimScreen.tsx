@@ -253,7 +253,7 @@ export default function SimScreen({
             <div className="flex-1 bg-white rounded-2xl border border-slate-100 p-5 overflow-y-auto shadow-sm flex flex-col gap-4">
               {consultLogs.length === 0 && (
                 <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-                  <p className="text-sm font-semibold text-slate-600 mb-1">📁 記録・メモを確認する</p>
+                  <p className="text-sm font-semibold text-slate-600 mb-1">記録・メモを確認する</p>
                   <p className="text-xs text-slate-400">前提条件に記載のない情報を<br />過去の記録・メモから確認できます</p>
                 </div>
               )}
@@ -273,7 +273,7 @@ export default function SimScreen({
                 value={consultQuestion}
                 onChange={(e) => setConsultQuestion(e.target.value)}
                 rows={3}
-                placeholder="確認したい記録・メモを入力してください（例：先月のメディアコアとのやり取り、候補者Aの選考メモ）"
+                placeholder="確認したい記録・メモを入力してください"
                 className="w-full border border-slate-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-blue-400 transition-colors mb-3"
               />
               <button
