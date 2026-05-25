@@ -239,30 +239,33 @@ export default function Home() {
   // finishSimulation はエラーを呼び出し元（processRally）に伝播させる
   async function finishSimulation(logs: ChatLog[]) {
     setLoadingMsg("評価レポートを生成中...");
-    const res = await fetch("/api/finish", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chatLogs: logs,
-        targetPersona: simConfig?.targetPersona ?? "",
-        scoreLabels: simConfig?.scoreLabels ?? [],
-        consultLogs,
-      }),
-    });
-    const data = await res.json();
+    try {
+      const res = await fetch("/api/finish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chatLogs: logs,
+          targetPersona: simConfig?.targetPersona ?? "",
+          scoreLabels: simConfig?.scoreLabels ?? [],
+          consultLogs,
+        }),
+      });
+      const data = await res.json();
 
-    if (!res.ok) {
-      throw new Error(data.error ?? "評価レポートの生成に失敗しました");
+      if (!res.ok) {
+        throw new Error(data.error ?? "評価レポートの生成に失敗しました");
+      }
+
+      track("simulation_completed");
+      setAnalysis(data);
+      setScreen("result");
+      setReportUrl("");
+      setUrlCopied(false);
+      localStorage.removeItem(DRAFT_ACTION_KEY);
+      localStorage.removeItem(DRAFT_INTENT_KEY);
+    } finally {
+      setLoading(false);
     }
-
-    track("simulation_completed");
-    setAnalysis(data);
-    setScreen("result");
-    setReportUrl("");
-    setUrlCopied(false);
-    localStorage.removeItem(DRAFT_ACTION_KEY);
-    localStorage.removeItem(DRAFT_INTENT_KEY);
-    setLoading(false);
   }
 
   function resetSimulation() {

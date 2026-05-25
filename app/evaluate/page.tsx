@@ -88,7 +88,7 @@ export default function EvaluatePage() {
       if (data.error) throw new Error(data.error);
       setResult(data);
     } catch (e) {
-      setError(String(e));
+      setError(e instanceof Error ? e.message : "統合評価の生成に失敗しました。もう一度お試しください。");
     } finally {
       setLoading(false);
     }
