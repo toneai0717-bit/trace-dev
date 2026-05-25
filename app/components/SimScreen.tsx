@@ -90,7 +90,7 @@ interface SimScreenProps {
   consultQuestion: string;
   setConsultQuestion: (v: string) => void;
   consultLoading: boolean;
-  consultLogs: { role: "boss"; question: string; reply: string }[];
+  consultLogs: import("../types").ConsultLog[];
   analysis: AnalysisResult | null;
   setScreen: (s: Screen) => void;
   onSendRally: () => void;

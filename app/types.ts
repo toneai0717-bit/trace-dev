@@ -15,6 +15,13 @@ export interface ChatLog {
   intent: string;
 }
 
+export interface ConsultLog {
+  role: "boss";
+  question: string;
+  reply: string;
+  rallyAt: number;
+}
+
 export interface AnalysisResult {
   scores: number[];
   overall: string;

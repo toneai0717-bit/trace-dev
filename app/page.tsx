@@ -56,7 +56,7 @@ export default function Home() {
   const [chatTab, setChatTab] = useState<"sim" | "boss">("sim");
   const [consultQuestion, setConsultQuestion] = useState("");
   const [consultLoading, setConsultLoading] = useState(false);
-  const [consultLogs, setConsultLogs] = useState<{ role: "boss"; question: string; reply: string }[]>([]);
+  const [consultLogs, setConsultLogs] = useState<import("./types").ConsultLog[]>([]);
   const [reportUrl, setReportUrl] = useState("");
   const [urlCopied, setUrlCopied] = useState(false);
   const [savingReport, setSavingReport] = useState(false);
@@ -168,7 +168,7 @@ export default function Home() {
         showToast("相談に失敗しました。もう一度お試しください。");
         return;
       }
-      setConsultLogs(prev => [...prev, { role, question: consultQuestion, reply: data.reply }]);
+      setConsultLogs(prev => [...prev, { role, question: consultQuestion, reply: data.reply, rallyAt: rallyCount }]);
       setConsultQuestion("");
     } catch {
       showToast("通信エラーが発生しました");
