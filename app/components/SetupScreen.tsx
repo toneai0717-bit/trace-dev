@@ -395,7 +395,17 @@ export default function SetupScreen({
             return (
               <button
                 key={type}
-                onClick={() => setSimType(type)}
+                onClick={() => {
+                  setSimType(type);
+                  if (selectedJob) {
+                    if (type === "email") {
+                      setJd("");
+                    } else {
+                      const job = JOB_TEMPLATES.find((j) => j.label === selectedJob);
+                      if (job) setJd(job.dataJd);
+                    }
+                  }
+                }}
                 className={`flex-1 py-3 rounded-xl text-sm font-bold border transition-colors ${simType === type ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300"}`}
               >
                 {labels[type]}

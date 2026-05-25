@@ -60,6 +60,8 @@ export default function Home() {
   const [reportUrl, setReportUrl] = useState("");
   const [urlCopied, setUrlCopied] = useState(false);
   const [savingReport, setSavingReport] = useState(false);
+  const [finishFailed, setFinishFailed] = useState(false);
+  const finishLogsRef = useRef<ChatLog[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
   const lastAiMsgRef = useRef<HTMLDivElement>(null);
 
@@ -133,6 +135,8 @@ export default function Home() {
       setConsultLogs([]);
       setConsultQuestion("");
       setSuggesting(false);
+      setFinishFailed(false);
+      finishLogsRef.current = [];
       setScreen("sim");
     } catch (e) {
       setError("通信エラーが発生しました。もう一度お試しください。");
@@ -194,6 +198,8 @@ export default function Home() {
     setLoading(true);
     setLoadingMsg(simType === "data" ? "次の情報を取得中..." : simType === "priority" ? "状況を更新中..." : simType === "report" ? "上司が確認中..." : "相手が返信を作成中...");
 
+    let rallySucceeded = false;
+
     try {
       const res = await fetch("/api/rally", {
         method: "POST",
@@ -220,19 +226,41 @@ export default function Home() {
       }
 
       setMessages([...newMessages, { role: "ai", text: data.reply }]);
+      rallySucceeded = true;
 
       if (newCount >= 4) {
+        finishLogsRef.current = newLogs;
         await finishSimulation(newLogs);
       } else {
         setLoading(false);
       }
     } catch (e) {
-      showToast("通信エラーが発生しました。もう一度お試しください。");
-      setAction(savedAction);
-      setIntent(savedIntent);
+      if (rallySucceeded) {
+        // rally は成功したが finishSimulation が失敗 → 入力を復元せず再試行ボタンを表示
+        setFinishFailed(true);
+        showToast("評価レポートの生成に失敗しました。再試行してください。");
+      } else {
+        // rally 自体が失敗 → 入力を復元してリトライ可能にする
+        showToast("通信エラーが発生しました。もう一度お試しください。");
+        setAction(savedAction);
+        setIntent(savedIntent);
+      }
       setLoading(false);
     } finally {
       isSubmittingRef.current = false;
+    }
+  }
+
+  async function retryFinish() {
+    if (!finishLogsRef.current.length) return;
+    setFinishFailed(false);
+    setLoading(true);
+    setLoadingMsg("評価レポートを生成中...");
+    try {
+      await finishSimulation(finishLogsRef.current);
+    } catch {
+      setFinishFailed(true);
+      showToast("評価レポートの生成に失敗しました。再試行してください。");
     }
   }
 
@@ -286,6 +314,8 @@ export default function Home() {
     setConsultLogs([]);
     setConsultQuestion("");
     setSuggesting(false);
+    setFinishFailed(false);
+    finishLogsRef.current = [];
     localStorage.removeItem(DRAFT_ACTION_KEY);
     localStorage.removeItem(DRAFT_INTENT_KEY);
   }
@@ -405,6 +435,8 @@ export default function Home() {
           showToast={showToast}
           chatRef={chatRef}
           lastAiMsgRef={lastAiMsgRef}
+          finishFailed={finishFailed}
+          onRetryFinish={retryFinish}
         />
       )}
 

@@ -98,6 +98,8 @@ interface SimScreenProps {
   showToast: (msg: string) => void;
   chatRef: React.RefObject<HTMLDivElement | null>;
   lastAiMsgRef: React.RefObject<HTMLDivElement | null>;
+  finishFailed: boolean;
+  onRetryFinish: () => void;
 }
 
 export default function SimScreen({
@@ -109,6 +111,7 @@ export default function SimScreen({
   consultQuestion, setConsultQuestion, consultLoading, consultLogs,
   analysis, setScreen, onSendRally, onConsult, showToast,
   chatRef, lastAiMsgRef,
+  finishFailed, onRetryFinish,
 }: SimScreenProps) {
   const safeContext = useMemo(() => {
     if (typeof window === "undefined" || !simConfig.context) return simConfig.context;
@@ -195,9 +198,10 @@ export default function SimScreen({
                         body: JSON.stringify({
                           aiRole: simConfig.aiRole,
                           lastAiMessage: lastAiMsg,
-                          targetPersona: simConfig.targetPersona,
                           context: simConfig.context,
                           playerOrg: simConfig.playerOrg,
+                          rallyCount,
+                          simType,
                         }),
                       });
                       const data = await res.json();
@@ -238,13 +242,22 @@ export default function SimScreen({
                 </div>
               </div>
               {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
-              <button
-                onClick={onSendRally}
-                disabled={!action.trim() || !intent.trim()}
-                className="w-full bg-sky-500 text-white rounded-xl py-3 font-semibold hover:bg-sky-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                送信する
-              </button>
+              {finishFailed ? (
+                <button
+                  onClick={onRetryFinish}
+                  className="w-full bg-amber-500 text-white rounded-xl py-3 font-semibold hover:bg-amber-400 transition-colors"
+                >
+                  評価レポートを再生成する
+                </button>
+              ) : (
+                <button
+                  onClick={onSendRally}
+                  disabled={!action.trim() || !intent.trim()}
+                  className="w-full bg-sky-500 text-white rounded-xl py-3 font-semibold hover:bg-sky-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  送信する
+                </button>
+              )}
             </div>
           </>
         )}

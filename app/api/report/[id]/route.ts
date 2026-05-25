@@ -20,6 +20,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json(data);
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: "レポートが見つかりませんでした" }, { status: 404 });
+    const isNotFound =
+      typeof e === "object" && e !== null && "code" in e &&
+      (e as { code: string }).code === "PGRST116";
+    return NextResponse.json(
+      { error: isNotFound ? "レポートが見つかりませんでした" : "サーバーエラーが発生しました" },
+      { status: isNotFound ? 404 : 500 }
+    );
   }
 }

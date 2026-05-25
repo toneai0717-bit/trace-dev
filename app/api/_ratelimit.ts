@@ -46,7 +46,3 @@ export function getClientIp(req: Request): string {
   );
 }
 
-export const RATE_LIMIT_RESPONSE = new Response(
-  JSON.stringify({ error: "リクエストが多すぎます。少し待ってから再試行してください。" }),
-  { status: 429, headers: { "Content-Type": "application/json" } }
-);
