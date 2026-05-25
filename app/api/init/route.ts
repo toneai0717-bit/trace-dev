@@ -174,9 +174,14 @@ export async function POST(req: NextRequest) {
 【適応系】状況適応力, 変化対応力, ストレス耐性, 曖昧耐性
 </SCORE_LABELS>`;
 
+    const systemWithConstraint = `${system}
+
+【情報量の制限】
+シナリオ内でリストや項目を列挙する場合（タスク一覧・添付ファイル・課題リストなど）、件数は必ず1〜10件以内に収めること。件数を増やすよりも、各項目の複雑さや状況のリアリティで難易度を表現すること。`;
+
     const text = await createMessageWithFallback({
       maxTokens: 4096,
-      system,
+      system: systemWithConstraint,
       userContent,
     });
 
