@@ -7,7 +7,11 @@ export async function POST(req: NextRequest) {
   if (!allowed) return NextResponse.json({ error: "リクエストが多すぎます。少し待ってから再試行してください。" }, { status: 429 });
 
   try {
-    const { aiRole, lastAiMessage, rallyCount, context } = await req.json();
+    const { aiRole, lastAiMessage, rallyCount, context, playerOrg } = await req.json();
+
+    const signatureInstruction = playerOrg
+      ? `- 署名は「${playerOrg}　戸根」の形式で必ずメール末尾に入れること`
+      : `- 署名は「戸根」のみでよい（社名不明の場合）`;
 
     const text = await createMessageWithFallback({
       maxTokens: 512,
@@ -23,6 +27,7 @@ export async function POST(req: NextRequest) {
 - 意図は戦略の説明（50〜100文字）
 - シナリオと相手の発言に合った自然な内容にすること
 - ラリー${rallyCount}回目にふさわしい展開（序盤は情報収集、中盤は提案、終盤はクロージング）
+${signatureInstruction}
 
 以下のタグで返してください：
 <ACTION>返信内容</ACTION>

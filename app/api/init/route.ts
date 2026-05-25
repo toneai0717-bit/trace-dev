@@ -163,6 +163,7 @@ export async function POST(req: NextRequest) {
 <p><span class="label">【ミッション】</span>プレイヤーが今日達成すべき具体的なゴール</p>
 </CONTEXT>
 <AI_ROLE>AIが演じる相手の具体的な会社名・氏名・役職（例：株式会社アルファテック 営業部長 田中誠）</AI_ROLE>
+<PLAYER_ORG>プレイヤー（戸根）が所属する会社・組織名のみ（例：株式会社リクルートエージェント、東海コンサルティング株式会社、PECジャパン株式会社）。JDの職種・業務内容から自然に導ける組織名を生成すること。役職や氏名は含めない。</PLAYER_ORG>
 <TARGET_PERSONA>JDが求める人物像（1〜2文）</TARGET_PERSONA>
 <FIRST_MSG>相手キャラクターからプレイヤーへの最初のビジネスメール。宛名・本文・署名を含むリアルな形式で、相手の立場・感情・温度感が伝わるように書く（7行以内）</FIRST_MSG>
 <SCORE_LABELS>このJDの職種・人物像に合わせて、以下のコンピテンシーバンクから候補者評価に最も重要な軸をちょうど6個選び、カンマ区切りで列挙する。バンク外の造語は使わないこと。
@@ -191,6 +192,7 @@ export async function POST(req: NextRequest) {
       .filter((s) => s.length > 0)
       .slice(0, 6);
 
+    const playerOrg = extract("PLAYER_ORG");
     const result = {
       title: extract("TITLE"),
       context: extract("CONTEXT"),
@@ -198,6 +200,7 @@ export async function POST(req: NextRequest) {
       targetPersona: extract("TARGET_PERSONA"),
       firstMsg: extract("FIRST_MSG"),
       scoreLabels: scoreLabels.length >= 3 ? scoreLabels : ["論理思考力", "交渉力", "状況適応力", "主体性", "ストレス耐性", "実行力"],
+      ...(playerOrg ? { playerOrg } : {}),
     };
 
     if (!result.title || !result.firstMsg) {

@@ -7,6 +7,7 @@ export interface SimConfig {
   targetPersona: string;
   firstMsg: string;
   scoreLabels: string[];
+  playerOrg?: string;
 }
 
 export interface ChatLog {

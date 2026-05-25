@@ -197,6 +197,7 @@ export default function SimScreen({
                           lastAiMessage: lastAiMsg,
                           targetPersona: simConfig.targetPersona,
                           context: simConfig.context,
+                          playerOrg: simConfig.playerOrg,
                         }),
                       });
                       const data = await res.json();
