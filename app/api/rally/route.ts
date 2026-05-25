@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   if (!allowed) return NextResponse.json({ error: "リクエストが多すぎます。少し待ってから再試行してください。" }, { status: 429 });
 
   try {
-    const { aiRole, firstMsg, context, messages: rawMessages, chatLogs, rallyCount, simType = "email" } = await req.json();
+    const { aiRole, firstMsg, context, messages: rawMessages, chatLogs, rallyCount, simType = "email", playerOrg } = await req.json();
     // メッセージ数の上限チェック（4往復 × 2 + 初回 = 最大9件）
     const messages = Array.isArray(rawMessages) ? rawMessages.slice(0, 20) : [];
 
@@ -124,7 +124,7 @@ ${context ? context.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim() : ""}
 
 【返信のルール】
 - ビジネスメール形式（宛名・本文・結び・署名）
-- プレイヤーの名前は「戸根」。メール文中の宛名は「戸根様」と書く
+- プレイヤーの名前は「戸根」。メール文中の宛名は「${playerOrg ? `${playerOrg}　戸根様` : "戸根様"}」と書く
 - 500文字以内で簡潔かつリアルに
 - 前回までの自分の発言と一貫性を保つ
 - 相手の意図を読んだ上で戦略的に応答する

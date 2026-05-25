@@ -206,6 +206,7 @@ export default function Home() {
           chatLogs: newLogs,
           rallyCount: newCount,
           simType,
+          playerOrg: simConfig.playerOrg,
         }),
       });
       const data = await res.json();
