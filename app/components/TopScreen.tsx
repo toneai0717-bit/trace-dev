@@ -164,9 +164,11 @@ export default function TopScreen({ setScreen, loadDebug }: TopScreenProps) {
           無料で試す →
         </button>
         <p className="text-xs text-slate-600 mt-4">クレジットカード不要 · アカウント登録不要</p>
-        <div className="mt-6 opacity-20 hover:opacity-100 transition-opacity">
-          <button onClick={loadDebug} className="text-xs text-slate-500 hover:text-slate-300">▶ debug: result</button>
-        </div>
+        {process.env.NODE_ENV === "development" && (
+          <div className="mt-6">
+            <button onClick={loadDebug} className="text-xs text-slate-600 hover:text-slate-400">▶ debug: result</button>
+          </div>
+        )}
       </div>
 
     </div>

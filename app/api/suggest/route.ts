@@ -1,16 +1,16 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
-import { withRetry } from "../_retry";
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+import { createMessageWithFallback } from "../_retry";
+import { checkRateLimit, getClientIp } from "../_ratelimit";
 
 export async function POST(req: NextRequest) {
+  const { allowed } = checkRateLimit(getClientIp(req), 20, 60_000);
+  if (!allowed) return NextResponse.json({ error: "リクエストが多すぎます。少し待ってから再試行してください。" }, { status: 429 });
+
   try {
     const { aiRole, lastAiMessage, rallyCount, context } = await req.json();
 
-    const message = await withRetry(() => client.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 512,
+    const text = await createMessageWithFallback({
+      maxTokens: 512,
       system: `あなたはビジネスシミュレーションのコーチです。
 プレイヤーが「${aiRole}」との交渉・対話シミュレーションを行っています。
 現在${rallyCount}回目のやり取りです。
@@ -27,15 +27,8 @@ export async function POST(req: NextRequest) {
 以下のタグで返してください：
 <ACTION>返信内容</ACTION>
 <INTENT>狙い・戦略</INTENT>`,
-      messages: [
-        {
-          role: "user",
-          content: `相手（${aiRole}）の直前のメッセージ：\n${lastAiMessage}\n\nシナリオ背景：\n${context ?? ""}`,
-        },
-      ],
-    }));
-
-    const text = message.content[0].type === "text" ? message.content[0].text : "";
+      userContent: `相手（${aiRole}）の直前のメッセージ：\n${(lastAiMessage ?? "").slice(0, 500)}\n\nシナリオ背景：\n${(context ?? "").slice(0, 500)}`,
+    });
 
     const extract = (tag: string) => {
       const match = text.match(new RegExp(`<${tag}>(.*?)<\\/${tag}>`, "s"));
@@ -50,6 +43,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ action, intent });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return NextResponse.json({ error: "サンプルの生成に失敗しました。もう一度お試しください。" }, { status: 500 });
   }
 }

@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createMessageWithFallback } from "../_retry";
+import { checkRateLimit, getClientIp } from "../_ratelimit";
 
 export async function POST(req: NextRequest) {
+  const { allowed } = checkRateLimit(getClientIp(req), 10, 60_000);
+  if (!allowed) return NextResponse.json({ error: "リクエストが多すぎます。少し待ってから再試行してください。" }, { status: 429 });
+
   try {
     const { jd, simType = "email" } = await req.json();
 
@@ -175,7 +179,6 @@ export async function POST(req: NextRequest) {
       userContent,
     });
 
-    console.log("=== response ===\n", text);
 
     const extract = (tag: string) => {
       const match = text.match(new RegExp(`<${tag}>(.*?)<\\/${tag}>`, "s"));
@@ -204,6 +207,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result);
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return NextResponse.json({ error: "シナリオの生成に失敗しました。もう一度お試しください。" }, { status: 500 });
   }
 }

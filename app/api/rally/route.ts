@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createChatWithFallback } from "../_retry";
+import { checkRateLimit, getClientIp } from "../_ratelimit";
 
 export async function POST(req: NextRequest) {
+  const { allowed } = checkRateLimit(getClientIp(req), 30, 60_000);
+  if (!allowed) return NextResponse.json({ error: "リクエストが多すぎます。少し待ってから再試行してください。" }, { status: 429 });
+
   try {
-    const { aiRole, firstMsg, context, messages, chatLogs, rallyCount, simType = "email" } = await req.json();
+    const { aiRole, firstMsg, context, messages: rawMessages, chatLogs, rallyCount, simType = "email" } = await req.json();
+    // メッセージ数の上限チェック（4往復 × 2 + 初回 = 最大9件）
+    const messages = Array.isArray(rawMessages) ? rawMessages.slice(0, 20) : [];
 
     const claudeMessages: { role: "user" | "assistant"; content: string }[] = [];
     let skippedFirst = false;
@@ -143,6 +149,6 @@ ${context ? context.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim() : ""}
     return NextResponse.json({ reply, shouldFinish: false });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return NextResponse.json({ error: "返信の生成に失敗しました。もう一度お試しください。" }, { status: 500 });
   }
 }

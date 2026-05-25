@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "../../lib/supabase";
 import { createMessageWithFallback } from "../_retry";
+import { checkRateLimit, getClientIp } from "../_ratelimit";
 
 export async function POST(req: NextRequest) {
+  const { allowed } = checkRateLimit(getClientIp(req), 10, 60_000);
+  if (!allowed) return NextResponse.json({ error: "リクエストが多すぎます。少し待ってから再試行してください。" }, { status: 429 });
+
   try {
     const { reportIds } = await req.json();
 
-    if (!reportIds || reportIds.length < 3) {
+    if (!Array.isArray(reportIds) || reportIds.length < 3) {
       return NextResponse.json({ error: "3件以上のレポートが必要です" }, { status: 400 });
+    }
+    // 上限チェック
+    if (reportIds.length > 10) {
+      return NextResponse.json({ error: "一度に評価できるレポートは10件までです" }, { status: 400 });
     }
 
     // 各レポートを取得
@@ -73,6 +81,6 @@ ${reportSummaries}
     });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return NextResponse.json({ error: "統合評価の生成に失敗しました。もう一度お試しください。" }, { status: 500 });
   }
 }

@@ -5,16 +5,30 @@ import Anthropic from "@anthropic-ai/sdk";
 const getOpenAI = () => new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const getAnthropic = () => new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+function getErrorStatus(e: unknown): number | undefined {
+  if (typeof e === "object" && e !== null && "status" in e) {
+    return (e as { status: unknown }).status as number;
+  }
+  return undefined;
+}
+
+// 認証・権限エラーはフォールバックしても意味がないのでリトライ不要
+function isNonRetryableError(e: unknown): boolean {
+  const status = getErrorStatus(e);
+  return status === 401 || status === 403;
+}
+
 export async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
   let lastError: unknown;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
       return await fn();
-    } catch (e: any) {
+    } catch (e: unknown) {
       lastError = e;
-      const retryable = e?.status === 429 || (e?.status >= 500 && e?.status < 600);
+      const status = getErrorStatus(e);
+      const retryable = status === 429 || (status !== undefined && status >= 500 && status < 600);
       if (!retryable || attempt === maxAttempts - 1) throw e;
-      await new Promise(r => setTimeout(r, (attempt + 1) * 1500));
+      await new Promise((r) => setTimeout(r, (attempt + 1) * 1500));
     }
   }
   throw lastError;
@@ -40,7 +54,9 @@ export async function createMessageWithFallback(params: {
     const content = message.content[0];
     if (content.type === "text") return content.text;
     throw new Error("Unexpected content type");
-  } catch (e) {
+  } catch (e: unknown) {
+    // 認証エラーはフォールバックしない
+    if (isNonRetryableError(e)) throw e;
     console.warn("[Fallback] Claude failed, switching to GPT-4o:", (e as Error)?.message);
   }
 
@@ -75,7 +91,9 @@ export async function createChatWithFallback(params: {
     const content = message.content[0];
     if (content.type === "text") return content.text;
     throw new Error("Unexpected content type");
-  } catch (e) {
+  } catch (e: unknown) {
+    // 認証エラーはフォールバックしない
+    if (isNonRetryableError(e)) throw e;
     console.warn("[Fallback] Claude failed, switching to GPT-4o:", (e as Error)?.message);
   }
 
@@ -84,7 +102,7 @@ export async function createChatWithFallback(params: {
     max_tokens: maxTokens,
     messages: [
       { role: "system", content: system },
-      ...messages.map(m => ({ role: m.role, content: m.content })),
+      ...messages.map((m) => ({ role: m.role, content: m.content })),
     ],
   });
   return response.choices[0]?.message?.content ?? "";

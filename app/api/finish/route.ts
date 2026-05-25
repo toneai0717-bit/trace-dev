@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createMessageWithFallback } from "../_retry";
+import { checkRateLimit, getClientIp } from "../_ratelimit";
 
 export async function POST(req: NextRequest) {
+  const { allowed } = checkRateLimit(getClientIp(req), 10, 60_000);
+  if (!allowed) return NextResponse.json({ error: "リクエストが多すぎます。少し待ってから再試行してください。" }, { status: 429 });
+
   try {
     const { chatLogs, targetPersona, scoreLabels, consultLogs } = await req.json();
 
@@ -95,6 +99,6 @@ ${scoreItems}
     });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return NextResponse.json({ error: "評価レポートの生成に失敗しました。もう一度お試しください。" }, { status: 500 });
   }
 }

@@ -20,6 +20,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json(data);
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: String(e) }, { status: 404 });
+    return NextResponse.json({ error: "レポートが見つかりませんでした" }, { status: 404 });
   }
 }
