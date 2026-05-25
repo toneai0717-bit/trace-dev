@@ -212,7 +212,58 @@ export async function POST(req: NextRequest) {
       throw new Error("シナリオの生成に失敗しました。もう一度お試しください。");
     }
 
-    return NextResponse.json(result);
+    // セルフレビュー：品質基準を満たさない場合は1回だけ再生成
+    const reviewText = await createMessageWithFallback({
+      maxTokens: 256,
+      system: `ビジネスシミュレーションシナリオの品質レビュアーです。以下の観点でPASS/FAILを判定してください：
+1. 受験者が前提条件の情報だけで判断・対応できるか（情報不足・情報過多ではないか）
+2. 数値・固有名詞・状況設定に矛盾や不自然な点がないか
+3. ビジネスシナリオとして適度な緊張感があり、実力測定に適しているか
+
+<VERDICT>PASSまたはFAIL</VERDICT>
+<REASON>FAILの場合のみ、問題点を50文字以内で記載</REASON>`,
+      userContent: `タイトル：${result.title}
+状況：${(result.context ?? "").replace(/<[^>]*>/g, "").slice(0, 500)}
+AIロール：${result.aiRole}
+最初のメッセージ：${(result.firstMsg ?? "").slice(0, 500)}`,
+    });
+
+    const verdict = reviewText.match(/<VERDICT>([\s\S]*?)<\/VERDICT>/)?.[1]?.trim();
+
+    let finalResult = result;
+
+    if (verdict === "FAIL") {
+      const retryText = await createMessageWithFallback({
+        maxTokens: 4096,
+        system: systemWithConstraint,
+        userContent,
+      });
+      const re = (tag: string) => {
+        const m = retryText.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`));
+        return m ? m[1].trim() : "";
+      };
+      const retryScoreLabels = re("SCORE_LABELS")
+        .split(",")
+        .map((s) => s.trim().replace(/\*\*/g, "").replace(/[\*\_\`]/g, ""))
+        .filter((s) => s.length > 0)
+        .slice(0, 6);
+      const retryPlayerOrg = re("PLAYER_ORG");
+      const retryTitle = re("TITLE");
+      const retryFirstMsg = re("FIRST_MSG");
+      if (retryTitle && retryFirstMsg) {
+        finalResult = {
+          title: retryTitle,
+          context: re("CONTEXT"),
+          aiRole: re("AI_ROLE"),
+          targetPersona: re("TARGET_PERSONA"),
+          firstMsg: retryFirstMsg,
+          scoreLabels: retryScoreLabels.length >= 3 ? retryScoreLabels : result.scoreLabels,
+          ...(retryPlayerOrg ? { playerOrg: retryPlayerOrg } : {}),
+        };
+      }
+    }
+
+    return NextResponse.json(finalResult);
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "シナリオの生成に失敗しました。もう一度お試しください。" }, { status: 500 });
