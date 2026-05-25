@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       : "";
 
     const reply = await createMessageWithFallback({
-      maxTokens: 512,
+      maxTokens: 1024,
       system: `${RECORDS_PERSONALITY}
 
 【シミュレーションの状況】
