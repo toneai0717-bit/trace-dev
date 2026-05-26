@@ -13,15 +13,17 @@ export async function POST(req: NextRequest) {
     if (!Array.isArray(reportIds) || reportIds.length < 3) {
       return NextResponse.json({ error: "3件以上のレポートが必要です" }, { status: 400 });
     }
-    // 上限チェック
     if (reportIds.length > 10) {
       return NextResponse.json({ error: "一度に評価できるレポートは10件までです" }, { status: 400 });
     }
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!reportIds.every((id: unknown) => typeof id === "string" && UUID_RE.test(id))) {
+      return NextResponse.json({ error: "不正なレポートIDが含まれています" }, { status: 400 });
+    }
 
-    // 各レポートを取得
     const { data: reports, error } = await supabase
       .from("reports")
-      .select("*")
+      .select("id, sim_type, title, analysis, score_labels")
       .in("id", reportIds);
 
     if (error) throw error;

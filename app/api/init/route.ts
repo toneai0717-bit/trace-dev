@@ -7,7 +7,11 @@ export async function POST(req: NextRequest) {
   if (!allowed) return NextResponse.json({ error: "リクエストが多すぎます。少し待ってから再試行してください。" }, { status: 429 });
 
   try {
-    const { jd, simType = "email" } = await req.json();
+    const { jd: rawJd, simType = "email" } = await req.json();
+    if (!rawJd || typeof rawJd !== "string") {
+      return NextResponse.json({ error: "求人票が不正です" }, { status: 400 });
+    }
+    const jd = rawJd.slice(0, 3000);
 
     const isData = simType === "data";
     const isPriority = simType === "priority";

@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       skippedFirst = true;
       claudeMessages.push({
         role: msg.role === "ai" ? "assistant" : "user",
-        content: msg.text,
+        content: typeof msg.text === "string" ? msg.text : "",
       });
     }
 

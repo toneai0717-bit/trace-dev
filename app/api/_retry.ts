@@ -68,7 +68,9 @@ export async function createMessageWithFallback(params: {
       { role: "user", content: userContent },
     ],
   });
-  return response.choices[0]?.message?.content ?? "";
+  const content = response.choices[0]?.message?.content;
+  if (!content) throw new Error("GPT-4o returned empty content");
+  return content;
 }
 
 /** マルチターン会話でClaude→GPT-4oフォールバック */
@@ -105,5 +107,7 @@ export async function createChatWithFallback(params: {
       ...messages.map((m) => ({ role: m.role, content: m.content })),
     ],
   });
-  return response.choices[0]?.message?.content ?? "";
+  const content = response.choices[0]?.message?.content;
+  if (!content) throw new Error("GPT-4o returned empty content");
+  return content;
 }

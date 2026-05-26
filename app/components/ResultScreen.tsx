@@ -80,9 +80,9 @@ export default function ResultScreen({
                 <span className="text-slate-600 font-semibold text-base w-24 flex-shrink-0">{label}</span>
                 <div className="flex items-center gap-2 flex-1">
                   <div className="flex-1 bg-slate-100 rounded-full h-4">
-                    <div className="bg-blue-500 h-4 rounded-full transition-all" style={{ width: `${(analysis.scores[i] / 10) * 100}%` }} />
+                    <div className="bg-blue-500 h-4 rounded-full transition-all" style={{ width: `${((analysis.scores[i] ?? 0) / 10) * 100}%` }} />
                   </div>
-                  <span className="font-black text-slate-800 text-2xl w-8 text-right">{analysis.scores[i]}</span>
+                  <span className="font-black text-slate-800 text-2xl w-8 text-right">{analysis.scores[i] ?? 0}</span>
                 </div>
               </div>
             ))}
