@@ -56,6 +56,7 @@ export default function Home() {
   const [chatTab, setChatTab] = useState<"sim" | "boss">("sim");
   const [consultQuestion, setConsultQuestion] = useState("");
   const [consultLoading, setConsultLoading] = useState(false);
+  // rallyAtは情報取得タイミングの記録。評価AIが「いつ取得したか」を判断できるよう付与する。
   const [consultLogs, setConsultLogs] = useState<import("./types").ConsultLog[]>([]);
   const [reportUrl, setReportUrl] = useState("");
   const [urlCopied, setUrlCopied] = useState(false);

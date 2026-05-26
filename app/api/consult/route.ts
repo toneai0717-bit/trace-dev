@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createMessageWithFallback } from "../_retry";
 import { checkRateLimit, getClientIp } from "../_ratelimit";
 
+// 【設計意図】記録・メモ参照はシナリオのcontextを元にAIがその場で生成する。
+// 事前にデータを仕込まない設計は意図的：「必要な情報を自分で取りに行けるか」自体がビジネススキルの評価対象。
+// プレイヤーは何を聞くべきかを自分で判断し、適切に引き出せたかが問われる。
 const RECORDS_PERSONALITY = `あなたはプレイヤーが自分の記録・メモ・CRM・過去メール・議事録などを検索・参照するシステムです。
 プレイヤーが確認したい情報に対して、シミュレーションのコンテキストと整合性のある具体的な事実・データ・記録を返してください。
 返答のスタイル：

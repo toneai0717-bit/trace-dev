@@ -212,7 +212,9 @@ export async function POST(req: NextRequest) {
       throw new Error("シナリオの生成に失敗しました。もう一度お試しください。");
     }
 
-    // セルフレビュー：品質基準を満たさない場合は1回だけ再生成
+    // 【設計意図】生成したシナリオをClaudeが自己レビューし、FAILなら1回だけ再生成する。
+    // 「情報不足・矛盾・緊張感のなさ」を人間が毎回確認するコストを削減するため。
+    // 再生成は1回限り（無限ループ防止）。2回目も低品質な場合はそのまま返す。
     const reviewText = await createMessageWithFallback({
       maxTokens: 256,
       system: `ビジネスシミュレーションシナリオの品質レビュアーです。以下の観点でPASS/FAILを判定してください：

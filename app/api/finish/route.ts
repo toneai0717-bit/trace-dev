@@ -9,6 +9,10 @@ export async function POST(req: NextRequest) {
   try {
     const { chatLogs: rawChatLogs, targetPersona, scoreLabels, consultLogs: rawConsultLogs } = await req.json();
     const chatLogs = Array.isArray(rawChatLogs) ? rawChatLogs.slice(0, 10) : [];
+    // consultLogsはスコアに直接影響させない（加点・減点どちらも行わない）。
+    // 「どんな情報が利用可能だったか」の文脈として渡すのみ。
+    // 情報を取得しても使いこなせなかった弱さは、行動・意図の評価に自然に反映される。
+    // rallyAtは情報取得タイミングを示す。取得前のラリーの行動には適用しないこと。
     const consultLogs = Array.isArray(rawConsultLogs) ? rawConsultLogs.slice(0, 10) : [];
 
     const labels: string[] = Array.isArray(scoreLabels) && scoreLabels.length >= 3
