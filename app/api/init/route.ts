@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     if (!rawJd || typeof rawJd !== "string") {
       return NextResponse.json({ error: "求人票が不正です" }, { status: 400 });
     }
-    const jd = rawJd.slice(0, 3000);
+    const jd = rawJd.slice(0, 5000);
 
     const isData = simType === "data";
     const isPriority = simType === "priority";
